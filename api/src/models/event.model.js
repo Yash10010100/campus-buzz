@@ -17,6 +17,10 @@ const eventSchema = new Schema({
         required: true,
         trim: true
     },
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    },
     domain: {
         type: String,
         required: true,
