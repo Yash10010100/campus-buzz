@@ -17,6 +17,11 @@ const participationSchema = new Schema({
     Registrationdetail: {
         type: Schema.Types.ObjectId,
         ref: "Registrationdetail"
+    },
+    success: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 }, { timestamps: true })
 
