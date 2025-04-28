@@ -1,10 +1,9 @@
-import { ApiResponse } from "../utils/ApiResponse";
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary";
-import { User } from "../models/user.model";
-import { url } from "inspector";
-import { pid } from "process";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { User } from "../models/user.model.js";
+
 
 const generateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId)
@@ -271,6 +270,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+
+    const user = req.user
+    user?.avatar = user.avatar?.url
     return res
         .status(200)
         .json(
