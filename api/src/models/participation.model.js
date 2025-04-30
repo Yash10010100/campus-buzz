@@ -14,7 +14,7 @@ const participationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
-    Registrationdetail: {
+    registrationdetail: {
         type: Schema.Types.ObjectId,
         ref: "Registrationdetail"
     },
