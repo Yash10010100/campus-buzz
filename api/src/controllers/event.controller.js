@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
-import mongoose, { isValidObjectId, Schema } from "mongoose";
+import { isValidObjectId, Schema } from "mongoose";
 import { Event } from "../models/event.model.js"
 import { Form } from "../models/form.model.js"
 import { Formfield } from "../models/formfield.model.js";
