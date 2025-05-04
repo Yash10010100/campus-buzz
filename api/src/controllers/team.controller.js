@@ -100,12 +100,8 @@ const commonTeamAggregationPipeline = (teamId) => [
 ]
 
 const addTeamMember = asyncHandler(async (req, res) => {
-    const { eventId, teamId } = req.params
+    const { teamId } = req.params
     const { userId } = req.body
-
-    if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
-    }
 
     if (!isValidObjectId(teamId)) {
         throw new ApiError(400, "Invalid team id")
@@ -113,12 +109,6 @@ const addTeamMember = asyncHandler(async (req, res) => {
 
     if (!isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid user id")
-    }
-
-    const event = await Event.findById(eventId)
-
-    if (!event) {
-        throw new ApiError(400, "Event not found")
     }
 
     const team = await Team.aggregate([
@@ -212,9 +202,9 @@ const removeTeamMember = asyncHandler(async (req, res) => {
 })
 
 const getTeamDetail = asyncHandler(async (req, res) => {
-    const {teamId} = req.params
+    const { teamId } = req.params
 
-    if(!isValidObjectId(teamId)){
+    if (!isValidObjectId(teamId)) {
         throw new ApiError(400, "Invalid team id")
     }
 
@@ -222,15 +212,19 @@ const getTeamDetail = asyncHandler(async (req, res) => {
         commonTeamAggregationPipeline(teamId)
     )
 
+    if(!team?.length){
+        throw new ApiError(400, "Team not found")
+    }
+
     res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            team[0],
-            "Team details"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                team[0],
+                "Team details"
+            )
         )
-    )
 
 })
 
