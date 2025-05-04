@@ -24,9 +24,24 @@ app.use(cookieParser())
 //import routes
 
 import healthcheckRouter from "./routes/healthcheck.routes.js"
+import userRouter from "./routes/user.routes.js"
+import eventRouter from "./routes/event.routes.js"
+import teamRouter from "./routes/team.routes.js"
+import formRouter from "./routes/form.routes.js"
+import participationRouter from "./routes/participation.routes.js"
 
 //routes
 
 app.use("/api/v1/healthcheck", healthcheckRouter)
+
+app.use("/api/v1/users", userRouter)
+
+app.use("/api/v1/events", eventRouter)
+
+app.use("/api/v1/teams", teamRouter)
+
+app.use("/api/v1/forms", formRouter)
+
+app.use("/api/v1/participation", participationRouter)
 
 export { app }
