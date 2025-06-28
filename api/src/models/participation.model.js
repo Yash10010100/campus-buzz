@@ -1,22 +1,21 @@
 import mongoose, { Schema } from "mongoose";
-import { Registrationdetail } from "./registrationdetail.model";
 
 const participationSchema = new Schema({
     event: {
         type: Schema.Types.ObjectId,
-        ref: "Event"
+        ref: "events"
     },
     team: {
         type: Schema.Types.ObjectId,
-        ref: "Team"
+        ref: "teams"
     },
     participant: {
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "users"
     },
     registrationdetail: {
         type: Schema.Types.ObjectId,
-        ref: "Registrationdetail"
+        ref: "registrationdetails"
     },
     success: {
         type: Boolean,
