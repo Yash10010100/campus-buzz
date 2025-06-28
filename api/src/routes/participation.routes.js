@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
     createParticipation, 
     completeParticipation
-} from "../controllers/participation.controller";
+} from "../controllers/participation.controller.js";
 
 const router = Router()
 

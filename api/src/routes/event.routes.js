@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
     uploadEvent,
     createRegistrationForm,
@@ -8,7 +8,7 @@ import {
     getEvent,
     deleteEvent,
     searchEvents    
-} from "../controllers/event.controller";
+} from "../controllers/event.controller.js";
 
 const router = Router()
 

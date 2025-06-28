@@ -15,7 +15,7 @@ import {
 const router = Router()
 
 router.route("/register").post(
-    upload.single("avatar"),
+    // upload.single("avatar"),
     registerUser
 )
 

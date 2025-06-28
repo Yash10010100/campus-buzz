@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
     addFormField,
     deleteAField,
     getForm
-} from "../controllers/form.controller";
+} from "../controllers/form.controller.js";
 
 const router = Router()
 
