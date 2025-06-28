@@ -35,7 +35,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    if (usertype !== "student" || usertype !== "organizer") {
+    if (usertype !== "student" && usertype !== "organizer") {
         throw new ApiError(400, "Invalid user type")
     }
 
@@ -53,16 +53,15 @@ const registerUser = asyncHandler(async (req, res) => {
     console.warn(req.files)
     const avatarLocalPath = req.files?.avatar?.[0]?.path
 
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is missing")
-    }
-
     let avatar;
-    try {
-        avatar = await uploadOnCloudinary(avatarLocalPath)
-    } catch (error) {
-        console.log("Error uploading avatar", error);
-        throw new ApiError(500, "Failed to upload avatar")
+
+    if (avatarLocalPath) {
+        try {
+            avatar = await uploadOnCloudinary(avatarLocalPath)
+        } catch (error) {
+            console.log("Error uploading avatar", error);
+            throw new ApiError(500, "Failed to upload avatar")
+        }
     }
 
     try {
@@ -70,8 +69,8 @@ const registerUser = asyncHandler(async (req, res) => {
             usertype,
             fullname,
             avatar: {
-                url: avatar.url,
-                pid: avatar.public_id
+                url: avatar?.url,
+                pid: avatar?.public_id
             },
             email,
             password,
@@ -85,6 +84,8 @@ const registerUser = asyncHandler(async (req, res) => {
         if (!user) {
             throw new ApiError(500, "Something went wrong while registering a user")
         }
+
+        user.avatar = user.avatar?.url
 
         const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
@@ -156,8 +157,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, {maxAge: 1000 * 60 * 60 * 24 * 1, ...options})
+        .cookie("refreshToken", refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 10, ...options})
         .json(new ApiResponse(
             200,
             {
@@ -225,6 +226,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: process.env.NODE_ENV === "production",
         }
 
+        user.password = ""
+        user.refreshToken = ""
+        user.avatar = user.avatar.url
+
         const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
         return res
@@ -234,7 +239,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             .json(
                 new ApiResponse(
                     200,
-                    { accessToken, refreshToken },
+                    { user, accessToken, refreshToken },
                     "Access token refreshed successfully"
                 )
             )
@@ -272,7 +277,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
 
     const user = req.user
-    user?.avatar = user.avatar?.url
+    user.avatar = user.avatar?.url
     return res
         .status(200)
         .json(

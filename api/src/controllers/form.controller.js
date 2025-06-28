@@ -39,7 +39,7 @@ const addFormField = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Required field is missing")
     }
 
-    if(!FORM_FIELD_DATATYPES.some((datatype)=>(datatype.name === datatype))){
+    if(!FORM_FIELD_DATATYPES.some((type)=>(type.name === datatype))){
         throw new ApiError(400, "Datatype must be one of the form-field-datatypes")
     }
 
@@ -49,7 +49,7 @@ const addFormField = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Enum options must be provided in an array")
     }
 
-    if(currentType.isEnum && !(ifenumoptions || ifenumoptions.length)){
+    if(currentType.isEnum && (!ifenumoptions || !ifenumoptions.length)){
         throw new ApiError(400, "Enum options are required for enumerated datatypes")
     }
 
