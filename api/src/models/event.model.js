@@ -37,7 +37,7 @@ const eventSchema = new Schema({
         trim: true
     },
     date: {
-        type: Object,   //object: {date, time}
+        type: Number,
         required: true
     },
     duration: {
@@ -47,6 +47,10 @@ const eventSchema = new Schema({
     registrationfees: {
         type: Number,
         default: null
+    },
+    lastregistrationdate: {
+        type: Number,
+        required: true
     },
     isteamevent: {
         type: Boolean,
