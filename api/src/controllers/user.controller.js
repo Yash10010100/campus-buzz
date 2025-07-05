@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -96,8 +97,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
         return res
             .status(201)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
+            .cookie("accessToken", accessToken, { maxAge: 1000 * 60 * 60 * 24 * 1, ...options })
+            .cookie("refreshToken", refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 10, ...options })
             .json(new ApiResponse(200, createdUser, "User registered and logged in successfully"))
     } catch (error) {
         console.log("User creation failed", error);
@@ -157,8 +158,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, {maxAge: 1000 * 60 * 60 * 24 * 1, ...options})
-        .cookie("refreshToken", refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 10, ...options})
+        .cookie("accessToken", accessToken, { maxAge: 1000 * 60 * 60 * 24 * 1, ...options })
+        .cookie("refreshToken", refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 10, ...options })
         .json(new ApiResponse(
             200,
             {
@@ -228,14 +229,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         user.password = ""
         user.refreshToken = ""
-        user.avatar = user.avatar.url
+        user.avatar = user.avatar?.url
 
         const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
+            .cookie("accessToken", accessToken, { maxAge: 1000 * 60 * 60 * 24 * 1, ...options })
+            .cookie("refreshToken", refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 10, ...options })
             .json(
                 new ApiResponse(
                     200,
@@ -244,7 +245,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while refreshing access token")
+        throw new ApiError(500, error.message || "Something went wrong while refreshing access token")
     }
 })
 

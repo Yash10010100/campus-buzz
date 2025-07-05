@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
-import { isValidObjectId, Schema } from "mongoose";
+import { isValidObjectId, now, Schema } from "mongoose";
 import { Event } from "../models/event.model.js"
 import { Form } from "../models/form.model.js"
 import { Formfield } from "../models/formfield.model.js";
@@ -12,14 +12,18 @@ import { Teammembership } from "../models/teammember.model.js";
 import { Registrationdetail } from "../models/registrationdetail.model.js";
 
 const uploadEvent = asyncHandler(async (req, res) => {
-    const { name, description, organizer, domain, location, city, date, time, duration, registrationfees, isteamevent, minteamsize, maxteamsize } = req.body
+    const { name, description, organizer, domain, location, city, date, duration, registrationfees, lastregistrationdate, isteamevent, minteamsize, maxteamsize } = req.body
 
     if (req.user?.usertype !== "organizer") {
         throw new ApiError(401, "Unautherized to upload event")
     }
 
-    if ([name, description, organizer, domain, location, city, date, time].some((field) => (field?.trim() === ""))) {
+    if ([name, description, organizer, domain, location, city, date, lastregistrationdate].some((field) => (!field || field?.toString().trim() === ""))) {
         throw new ApiError(400, "Required fields are missing")
+    }
+
+    if(date<=Date.now() || lastregistrationdate<=Date.now()){
+        throw new ApiError(400, "Dates must be greater than current date")
     }
 
     const imageLocalPath = req.file?.path
@@ -43,9 +47,10 @@ const uploadEvent = asyncHandler(async (req, res) => {
             domain,
             location,
             city,
-            date: { date, time },
+            date,
             duration,
             registrationfees,
+            lastregistrationdate,
             isteamevent,
             minteamsize,
             maxteamsize,
@@ -58,6 +63,8 @@ const uploadEvent = asyncHandler(async (req, res) => {
         if (!event) {
             throw new ApiError(500, "")
         }
+
+        event.themeimage = event?.themeimage?.url
 
         res
             .status(200)
@@ -113,6 +120,8 @@ const createRegistrationForm = asyncHandler(async (req, res) => {
 
     event.save({ validateBeforeSave: false })
 
+    event.themeimage = event.themeimage?.url
+
     res
         .status(200),
         json(
@@ -126,10 +135,14 @@ const createRegistrationForm = asyncHandler(async (req, res) => {
 
 const updateEventDetails = asyncHandler(async (req, res) => {
     const { eventId } = req.params
-    const { newname, newdescription, newdomain, newlocation, newcity, newdate, newtime, newduration, newregistrationfees, newisteamevent, newminteamsize, newmaxteamsize } = req.body
+    const { name, description, domain, location, city, date, duration, registrationfees, lastregistrationdate, isteamevent, minteamsize, maxteamsize } = req.body
 
     if (!isValidObjectId(eventId)) {
         throw new ApiError(400, "Invalid event id")
+    }
+
+    if(date&&date<=Date.now() || lastregistrationdate&&lastregistrationdate<=Date.now()){
+        throw new ApiError(400, "Dates must be greater than current date")
     }
 
     try {
@@ -143,17 +156,17 @@ const updateEventDetails = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Unautherized to update the event")
         }
 
-        event.name = newname || event.name
-        event.description = newdescription || event.description
-        event.domain = newdomain || event.domain
-        event.location = newlocation || event.location
-        event.city = newcity || event.city
-        event.date = (newdate && newtime) ? { date: newdate, time: newtime } : event.date
-        event.duration = newduration || event.duration
-        event.registrationfees = newregistrationfees || event.registrationfees
-        event.isteamevent = newisteamevent || event.isteamevent
-        event.minteamsize = newminteamsize || event.minteamsize
-        event.maxteamsize = newmaxteamsize || event.maxteamsize
+        event.name = name.trim() || event.name
+        event.description = description.trim() || event.description
+        event.domain = domain.trim() || event.domain
+        event.location = location.trim() || event.location
+        event.city = city.trim() || event.city
+        event.date = date || event.date
+        event.duration = duration || event.duration
+        event.registrationfees = registrationfees || event.registrationfees
+        event.isteamevent = isteamevent || event.isteamevent
+        event.minteamsize = minteamsize || event.minteamsize
+        event.maxteamsize = maxteamsize || event.maxteamsize
 
         event.save({ validateBeforeSave: false })
 
@@ -210,19 +223,21 @@ const changeThemeImage = asyncHandler(async (req, res) => {
         pid: themeimage.public_id
     }
 
-    event.save({validateBeforeSave:false})
+    event.save({ validateBeforeSave: false })
+
+    event.themeimage = event.themeimage?.url
 
     await deleteFromCloudinary(oldimage.pid)
 
     res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            event,
-            "Theme image changed"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                event,
+                "Theme image changed"
+            )
         )
-    )
 })
 
 const deleteEvent = asyncHandler(async (req, res) => {
@@ -296,6 +311,8 @@ const getEvent = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Event not found")
     }
 
+    event.themeimage = event.themeimage?.url
+
     res
         .status(200)
         .json(
@@ -307,10 +324,229 @@ const getEvent = asyncHandler(async (req, res) => {
         )
 })
 
-const searchEvents = asyncHandler(async(req, res)=>{
-    const {query} = req.body
+const fetchFutureEvents = asyncHandler(async (req, res) => {
+    const now = Date.now()
 
-    //todo
+    const events = await Event.find({ date: { $gt: now } }).sort({ ["date"]: 1 })
+
+    if (!events) {
+        throw new ApiError(400, "Failed to fetch future events")
+    }
+
+    events.forEach((e) => {
+        e.themeimage = e.themeimage?.urrl
+    })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                events,
+                "Future event fetched"
+            )
+        )
+
+})
+
+const searchEventsWithQuery = asyncHandler(async (req, res) => {
+    const { query, sortOrder, filters } = req.body
+
+    const now = Date.now()
+    const regex = new RegExp(query, "i");
+    const sort = { ["date"]: sortOrder === "asc" ? 1 : -1 };
+
+    const baseQuery = (field) => ({
+        [field]: { $regex: regex },
+        date: { $gt: now },
+        ...filters
+    });
+
+    try {
+        const [nameMatches, descriptionMatches, organizerMatches, domainMatches] = await Promise.all([
+            Event.find(baseQuery("name")).sort(sort),
+            Event.find(baseQuery("description")).sort(sort),
+            Event.find(baseQuery("organizer")).sort(sort),
+            Event.find(baseQuery("domain")).sort(sort),
+        ]);
+
+        nameMatches.forEach((e) => { e.themeimage = e.themeimage?.url })
+        descriptionMatches.forEach((e) => { e.themeimage = e.themeimage?.url })
+        organizerMatches.forEach((e) => { e.themeimage = e.themeimage?.url })
+        domainMatches.forEach((e) => { e.themeimage = e.themeimage?.url })
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    [nameMatches, descriptionMatches, organizerMatches, domainMatches],
+                    "Fetch by search query successful"
+                )
+            )
+    } catch (error) {
+        throw new ApiError(500, error.message || "Fetch by query failed")
+    }
+})
+
+const futureEventsByOrg = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
+
+    const now = Date.now()
+
+    const events = await Event.find({ owner: userId, date: { $gt: now } }).sort({ ["date"]: 1 })
+
+    if (!events) {
+        throw new ApiError(400, "Failed to fetch organizer's future events")
+    }
+
+    events.forEach((e) => {
+        e.themeimage = e.themeimage?.url
+    })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                events,
+                "Organizer's future events"
+            )
+        )
+})
+
+const pastEventsByOrg = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
+
+    const now = Date.now()
+
+    const events = await Event.find({ owner: userId, date: { $lt: now } }).sort({ ["date"]: -1 })
+
+    if (!events) {
+        throw new ApiError(400, "Failed to fetch organizer's future events")
+    }
+
+    events.forEach((e) => {
+        e.themeimage = e.themeimage?.url
+    })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                events,
+                "Organizer's future events"
+            )
+        )
+})
+
+const currentStudentParticipationEvents = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
+
+    const now = Date.now();
+
+    const pipeline = (successFlag) => ([
+        {
+            $match: {
+                participant: new mongoose.Types.ObjectId(userId),
+                success: successFlag
+            }
+        },
+        {
+            $lookup: {
+                from: "events",
+                localField: "event",
+                foreignField: "_id",
+                as: "eventData"
+            }
+        },
+        { $unwind: "$eventData" },
+        {
+            $match: {
+                "eventData.date": { $gt: now }
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$eventData"
+            }
+        }
+    ]);
+
+    const [registeredEvents, pendingRegistrationEvents] = await Promise.all([
+        Participation.aggregate(pipeline(true)),
+        Participation.aggregate(pipeline(false))
+    ]);
+
+    if(!registeredEvents){
+        throw new ApiError(400, "Failed to fetch registered events")
+    }
+    
+    if(!pendingRegistrationEvents){
+        throw new ApiError(400, "Failed to fetch events with pending registration")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                registeredEvents,
+                pendingRegistrationEvents
+            },
+            "Events registered by student and events with pending registration"
+        )
+    )
+})
+
+const pastParticipationEvents = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
+
+    const now = Date.now();
+
+    const events = await Participation.aggregate([
+        {
+            $match: {
+                participant: new mongoose.Types.ObjectId(userId),
+                success: true
+            }
+        },
+        {
+            $lookup: {
+                from: "events",
+                localField: "event",
+                foreignField: "_id",
+                as: "eventData"
+            }
+        },
+        { $unwind: "$eventData" },
+        {
+            $match: {
+                "eventData.date": { $lt: now }
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$eventData"
+            }
+        }
+    ]);
+
+    if(!events){
+        throw new ApiError(400, "Failed to fetch participated events history")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            events,
+            "Participation history"
+        )
+    )
 })
 
 export {
@@ -320,5 +556,10 @@ export {
     changeThemeImage,
     deleteEvent,
     getEvent,
-    searchEvents,
+    fetchFutureEvents,
+    searchEventsWithQuery,
+    futureEventsByOrg,
+    pastEventsByOrg,
+    currentStudentParticipationEvents,
+    pastParticipationEvents,
 }
