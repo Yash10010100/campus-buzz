@@ -41,11 +41,19 @@ const registerUser = asyncHandler(async (req, res) => {
     if (
         [usertype, fullname, email, username, password].some((field) => (field?.trim() === ""))
     ) {
-        throw new ApiError(400, "All fields are required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "All fields are required")
+            )
     }
 
     if (usertype !== "student" && usertype !== "organizer") {
-        throw new ApiError(400, "Invalid user type")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid user type")
+            )
     }
 
     const existedUser = await User.findOne({
@@ -54,9 +62,17 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (existedUser) {
         if (email === existedUser.email)
-            throw new ApiError(409, "User with same email already exists")
+            return res
+                .status(409)
+                .json(
+                    new ApiError(409, "User with same email already exists")
+                )
         else
-            throw new ApiError(409, "User with same username already exists")
+            return res
+                .status(409)
+                .json(
+                    new ApiError(409, "User with same username already exists")
+                )
     }
 
     console.warn(req.files)
@@ -69,7 +85,11 @@ const registerUser = asyncHandler(async (req, res) => {
             avatar = await uploadOnCloudinary(avatarLocalPath)
         } catch (error) {
             console.log("Error uploading avatar", error);
-            throw new ApiError(500, "Failed to upload avatar")
+            return res
+                .status(500)
+                .json(
+                    new ApiError(500, "Failed to upload avatar")
+                )
         }
     }
 
@@ -91,7 +111,11 @@ const registerUser = asyncHandler(async (req, res) => {
         )
 
         if (!user) {
-            throw new ApiError(500, "Something went wrong while registering a user")
+            return res
+                .status(500)
+                .json(
+                    new ApiError(500, "Something went wrong while registering a user")
+                )
         }
 
         user.avatar = user.avatar?.url
@@ -126,15 +150,27 @@ const loginUser = asyncHandler(async (req, res) => {
     const { usertype, usernameoremail, password } = req.body
 
     if (!usertype?.trim()) {
-        throw new ApiError(400, "User type is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "User type is required")
+            )
     }
 
     if (!usernameoremail?.trim()) {
-        throw new ApiError(400, "Username or email is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Username or email is required")
+            )
     }
 
     if (!password?.trim()) {
-        throw new ApiError(400, "Password is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Password is required")
+            )
     }
 
     const user = await User.findOne({
@@ -142,17 +178,29 @@ const loginUser = asyncHandler(async (req, res) => {
     })
 
     if (!user) {
-        throw new ApiError(409, "User doesn't exist")
+        return res
+            .status(409)
+            .json(
+                new ApiError(409, "User doesn't exist")
+            )
     }
 
     if (user.usertype !== usertype) {
-        throw new ApiError(400, "User type mismatch")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "User type mismatch")
+            )
     }
 
     const isPasswordCorrect = await user.isPasswordCorrect(password)
 
     if (!isPasswordCorrect) {
-        throw new ApiError(401, "Invalid password")
+        return res
+            .status(401)
+            .json(
+                new ApiError(401, "Invalid password")
+            )
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
@@ -160,8 +208,14 @@ const loginUser = asyncHandler(async (req, res) => {
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!loggedInUser) {
-        throw new ApiError(500, "Something went wrong")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Something went wrong")
+            )
     }
+
+    loggedInUser.avatar = loggedInUser?.avatar?.url
 
     const options = {
         httpOnly: true,
@@ -269,7 +323,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        throw new ApiError(500, error.message || "Something went wrong while refreshing access token")
+        return res
+                .status(500)
+                .json(
+                    new ApiError(500, "Something went wrong while refreshing access token")
+                )
     }
 })
 
@@ -421,10 +479,10 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
             )
     } catch (error) {
         return res
-                .status(500)
-                .json(
-                    new ApiError(500, error.message || "Something went wrong while updating the avatar file")
-                )
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong while updating the avatar file")
+            )
     }
 })
 
