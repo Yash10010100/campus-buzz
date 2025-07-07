@@ -8,7 +8,7 @@ export const FORM_FIELD_DATATYPES = [
     },
     {
         name: "Number",
-        inputtype: "number",
+        inputtype: "text",
         inputoptions: {
             inputMode: "numeric"
         }

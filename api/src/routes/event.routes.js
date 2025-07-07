@@ -7,7 +7,6 @@ import {
     changeThemeImage,
     getEvent,
     deleteEvent,
-    searchEvents    
 } from "../controllers/event.controller.js";
 
 const router = Router()

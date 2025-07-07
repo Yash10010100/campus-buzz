@@ -15,28 +15,48 @@ const uploadEvent = asyncHandler(async (req, res) => {
     const { name, description, organizer, domain, location, city, date, duration, registrationfees, lastregistrationdate, isteamevent, minteamsize, maxteamsize } = req.body
 
     if (req.user?.usertype !== "organizer") {
-        throw new ApiError(401, "Unautherized to upload event")
+        return res
+            .status(401)
+            .json(
+                new ApiError(401, "Unautherized to upload event")
+            )
     }
 
     if ([name, description, organizer, domain, location, city, date, lastregistrationdate].some((field) => (!field || field?.toString().trim() === ""))) {
-        throw new ApiError(400, "Required fields are missing")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Required fields are missing")
+            )
     }
 
-    if(date<=Date.now() || lastregistrationdate<=Date.now()){
-        throw new ApiError(400, "Dates must be greater than current date")
+    if (date <= Date.now() || lastregistrationdate <= Date.now()) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Dates must be greater than current date")
+            )
     }
 
     const imageLocalPath = req.file?.path
 
     if (!imageLocalPath) {
-        throw new ApiError(400, "Theme image is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Theme image is required")
+            )
     }
 
     let themeimage;
     try {
         themeimage = await uploadOnCloudinary(imageLocalPath)
     } catch (error) {
-        throw new ApiError(500, "Failed to upload theme image")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Failed to upload theme image")
+            )
     }
 
     try {
@@ -61,7 +81,11 @@ const uploadEvent = asyncHandler(async (req, res) => {
         })
 
         if (!event) {
-            throw new ApiError(500, "")
+            return res
+                .status(500)
+                .json(
+                    new ApiError(500, "Failed to upload the event")
+                )
         }
 
         event.themeimage = event?.themeimage?.url
@@ -80,7 +104,11 @@ const uploadEvent = asyncHandler(async (req, res) => {
         if (themeimage) {
             await deleteFromCloudinary(themeimage.public_id)
         }
-        throw new ApiError(500, error.message || "Something went wrong while creating new event")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong while creating new event")
+            )
     }
 })
 
@@ -89,31 +117,55 @@ const createRegistrationForm = asyncHandler(async (req, res) => {
     const userId = req.user?._id
 
     if (req.user?.usertype !== "organizer") {
-        throw new ApiError(401, "Unautherized to add registration form")
+        return res
+            .status(401)
+            .json(
+                new ApiError(401, "Unautherized to add registration form")
+            )
     }
 
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event id")
+            )
     }
 
     const event = await Event.findById(eventId)
 
     if (!event) {
-        throw new ApiError(400, "Event not found")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Event not found")
+            )
     }
 
     if (event.registrationform) {
-        throw new ApiError(400, "Event alreaduy have a registration form")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Event alreaduy have a registration form")
+            )
     }
 
     if (event.owner !== userId) {
-        throw new ApiError(400, "Unautherized to update the event")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Unautherized to update the event")
+            )
     }
 
     const form = await Form.create({ name: `${event.name}'s registration form` })
 
     if (!form) {
-        throw new ApiError(500, "Failed to create the form")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Failed to create the form")
+            )
     }
 
     event.registrationform = form._id
@@ -138,22 +190,38 @@ const updateEventDetails = asyncHandler(async (req, res) => {
     const { name, description, domain, location, city, date, duration, registrationfees, lastregistrationdate, isteamevent, minteamsize, maxteamsize } = req.body
 
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event id")
+            )
     }
 
-    if(date&&date<=Date.now() || lastregistrationdate&&lastregistrationdate<=Date.now()){
-        throw new ApiError(400, "Dates must be greater than current date")
+    if (date && date <= Date.now() || lastregistrationdate && lastregistrationdate <= Date.now()) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Dates must be greater than current date")
+            )
     }
 
     try {
         const event = await Event.findById(eventId)
 
         if (!event) {
-            throw new ApiError(404, "Event not found")
+            return res
+                .status(404)
+                .json(
+                    new ApiError(404, "Event not found")
+                )
         }
 
-        if (event.owner !== req.user._id) {
-            throw new ApiError(400, "Unautherized to update the event")
+        if (event.owner !== req.user?._id) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, "Unautherized to update the event")
+                )
         }
 
         event.name = name.trim() || event.name
@@ -181,7 +249,11 @@ const updateEventDetails = asyncHandler(async (req, res) => {
             )
 
     } catch (error) {
-        throw new ApiError(error.statusCode || 500, error.message || "Something went wrong while updating event details")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong while updating event details")
+            )
     }
 })
 
@@ -191,29 +263,48 @@ const changeThemeImage = asyncHandler(async (req, res) => {
     const themeimagepath = req.file?.path
 
     if (!themeimagepath) {
-        throw new ApiError(400, "Theme image is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Theme image is required")
+            )
     }
 
-
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event id")
+            )
     }
 
     const event = await Event.findById(eventId)
 
     if (!event) {
-        throw new ApiError(404, "Event not found")
+        return res
+            .status(400)
+            .json(
+                new ApiError(404, "Event not found")
+            )
     }
 
     let themeimage;
     try {
         themeimage = await uploadOnCloudinary(themeimagepath)
     } catch (error) {
-        throw new ApiError(500, "Failed to upload")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Failed to upload")
+            )
     }
 
     if (!themeimage) {
-        throw new ApiError(500, "Failed to upload")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Failed to upload")
+            )
     }
 
     const oldimage = event.themeimage
@@ -244,18 +335,30 @@ const deleteEvent = asyncHandler(async (req, res) => {
     const { eventId } = req.params
 
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event id")
+            )
     }
 
     try {
         const event = await Event.findById(eventId)
 
         if (!event) {
-            throw new ApiError(404, "Event not found")
+            return res
+                .status(404)
+                .json(
+                    new ApiError(404, "Event not found")
+                )
         }
 
         if (event.owner !== req.user._id) {
-            throw new ApiError(400, "Unautherized to delete the event")
+            return res
+                .status(401)
+                .json(
+                    new ApiError(401, "Unautherized to delete the event")
+                )
         }
 
         await Formfield.deleteMany({ form: { $eq: eventId } })
@@ -294,7 +397,11 @@ const deleteEvent = asyncHandler(async (req, res) => {
 
 
     } catch (error) {
-        throw new ApiError(500, "Failed to delete the event")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Failed to delete the event")
+            )
     }
 })
 
@@ -302,18 +409,26 @@ const getEvent = asyncHandler(async (req, res) => {
     const { eventId } = req.params
 
     if (!isValidObjectId) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event id")
+            )
     }
 
     const event = await event.findById(eventId)
 
     if (!event) {
-        throw new ApiError(404, "Event not found")
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "Event not found")
+            )
     }
 
     event.themeimage = event.themeimage?.url
 
-    res
+    return res
         .status(200)
         .json(
             new ApiResponse(
@@ -330,7 +445,11 @@ const fetchFutureEvents = asyncHandler(async (req, res) => {
     const events = await Event.find({ date: { $gt: now } }).sort({ ["date"]: 1 })
 
     if (!events) {
-        throw new ApiError(400, "Failed to fetch future events")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch future events")
+            )
     }
 
     events.forEach((e) => {
@@ -385,7 +504,11 @@ const searchEventsWithQuery = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        throw new ApiError(500, error.message || "Fetch by query failed")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Fetch by query failed")
+            )
     }
 })
 
@@ -397,7 +520,11 @@ const futureEventsByOrg = asyncHandler(async (req, res) => {
     const events = await Event.find({ owner: userId, date: { $gt: now } }).sort({ ["date"]: 1 })
 
     if (!events) {
-        throw new ApiError(400, "Failed to fetch organizer's future events")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch organizer's future events")
+            )
     }
 
     events.forEach((e) => {
@@ -423,7 +550,11 @@ const pastEventsByOrg = asyncHandler(async (req, res) => {
     const events = await Event.find({ owner: userId, date: { $lt: now } }).sort({ ["date"]: -1 })
 
     if (!events) {
-        throw new ApiError(400, "Failed to fetch organizer's future events")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch organizer's past events history")
+            )
     }
 
     events.forEach((e) => {
@@ -479,26 +610,34 @@ const currentStudentParticipationEvents = asyncHandler(async (req, res) => {
         Participation.aggregate(pipeline(false))
     ]);
 
-    if(!registeredEvents){
-        throw new ApiError(400, "Failed to fetch registered events")
+    if (!registeredEvents) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch registered events")
+            )
     }
-    
-    if(!pendingRegistrationEvents){
-        throw new ApiError(400, "Failed to fetch events with pending registration")
+
+    if (!pendingRegistrationEvents) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch events with pending registration")
+            )
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            {
-                registeredEvents,
-                pendingRegistrationEvents
-            },
-            "Events registered by student and events with pending registration"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    registeredEvents,
+                    pendingRegistrationEvents
+                },
+                "Events registered by student and events with pending registration"
+            )
         )
-    )
 })
 
 const pastParticipationEvents = asyncHandler(async (req, res) => {
@@ -534,19 +673,23 @@ const pastParticipationEvents = asyncHandler(async (req, res) => {
         }
     ]);
 
-    if(!events){
-        throw new ApiError(400, "Failed to fetch participated events history")
+    if (!events) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Failed to fetch participated events history")
+            )
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            events,
-            "Participation history"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                events,
+                "Participation history"
+            )
         )
-    )
 })
 
 export {

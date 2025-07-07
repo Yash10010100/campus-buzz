@@ -15,11 +15,19 @@ const addRegistrationDetails = asyncHandler(async (req, res) => {
     const { data } = req.body
 
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event Id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event Id")
+            )
     }
 
     if (!isValidObjectId(participationId)) {
-        throw new ApiError(400, "Invalid participation Id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid participation Id")
+            )
     }
 
     const event = await Event.aggregate(
@@ -56,77 +64,117 @@ const addRegistrationDetails = asyncHandler(async (req, res) => {
     )
 
     if (!event?.length) {
-        throw new ApiError(400, "Event not found")
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "Event not found")
+            )
     }
 
     const datakeys = Object.keys(data)
     const details = {}
 
-    datakeys.forEach((key)=>{
+    datakeys.forEach((key) => {
     })
 
-    event.form.fields.forEach(async (field) => {
+    event[0]?.form.fields.forEach(async (field) => {
         if (field.datatype === "File") {
             const filePath = req.files?.[field.name]?.[0]?.path
             if (field.required && !filePath) {
-                throw new ApiError(400, `${field.name} file is required`)
+                return res
+                    .status(400)
+                    .json(
+                        new ApiError(400, `${field.name} file is required`)
+                    )
             }
             let file;
             try {
                 file = await uploadOnCloudinary(filePath)
 
                 if (!file) {
-                    throw new ApiError()
+                    return res
+                        .status(500)
+                        .json(
+                            new ApiError(500, `Failed to upload details, please try again`)
+                        )
                 }
 
                 data[field.name] = { url: file.url, pid: file.public_id }
             } catch (error) {
-                throw new ApiError(500, error.message || `Failed to upload ${field.name} file`)
+                return res
+                    .status(500)
+                    .json(
+                        new ApiError(500, `Failed to upload ${field.name} file`)
+                    )
             }
         }
         if (field.required && !data[field.name]) {
-            throw new ApiError(400, `${field.name} is required`)
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `${field.name} is required`)
+                )
         }
 
-        if(field.datatype === "String" && typeof data[field.name]!=="string"){
-            throw new ApiError(400, `${field.name} must be a string`)
+        if (field.datatype === "String" && typeof data[field.name] !== "string") {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `${field.name} must be a string`)
+                )
         }
-        else if(field.datatype === "Number" && isNaN(Number.parseInt(data[field.name]))){
-            throw new ApiError(400, `${field.name} must be a valid number`)
+        else if (field.datatype === "Number" && isNaN(Number.parseInt(data[field.name]))) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `${field.name} must be a valid number`)
+                )
         }
-        else if(field.datatype === "Boolean" && data[field.name]!==true && data[field.name]!==false){
-            throw new ApiError(400, `Invalid value for ${field.name}`)
+        else if (field.datatype === "Boolean" && data[field.name] !== true && data[field.name] !== false) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `${field.name} must be a boolean`)
+                )
         }
-        else if(field.datatype === "Enum" && !field.ifenumoptions?.some((option)=>(data[field.name]===option))){
-            throw new ApiError(400, `Value of ${field.name} must be from provided options`)
+        else if (field.datatype === "Enum" && !field.ifenumoptions?.some((option) => (data[field.name] === option))) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `Value of ${field.name} must be from provided options`)
+                )
         }
 
-        details[field.name]=data[field.name]
+        details[field.name] = data[field.name]
     })
 
     const registrationdetail = await Registrationdetail.create({
         details
     })
 
-    if(!registrationdetail){
-        throw new ApiError(400, "Something went wrong while uploading registration details")
+    if (!registrationdetail) {
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Something went wrong while uploading registration details")
+            )
     }
 
     const participation = await Participation.findById(participationId)
 
-    participation.registrationdetail = registrationdetail
+    participation.registrationdetail = registrationdetail?._id
 
-    participation.save({validateBeforeSave: false})
+    participation.save({ validateBeforeSave: false })
 
     res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            registrationdetail,
-            "Registration details uploaded successfully"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                registrationdetail,
+                "Registration details uploaded successfully"
+            )
         )
-    )
 })
 
 const modifyRegistrationDetails = asyncHandler(async (req, res) => {

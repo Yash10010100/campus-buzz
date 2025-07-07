@@ -13,7 +13,11 @@ const createParticipation = asyncHandler(async (req, res) => {
     const user = req.user
 
     if (!isValidObjectId(eventId)) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event Id")
+            )
     }
 
     try {
@@ -27,7 +31,11 @@ const createParticipation = asyncHandler(async (req, res) => {
             })
 
             if (!team) {
-                throw new ApiError(500, "Something went wrong")
+                return res
+                    .status(500)
+                    .json(
+                        new ApiError(500, "Something went wrong")
+                    )
             }
         }
 
@@ -49,7 +57,11 @@ const createParticipation = asyncHandler(async (req, res) => {
             )
 
     } catch (error) {
-        throw new ApiError(error.statusCode || 500, error.message || "Something went wrong")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong")
+            )
     }
 })
 
@@ -57,50 +69,74 @@ const completeParticipation = asyncHandler(async (req, res) => {
     const { participationId } = req.params
 
     if (!isValidObjectId) {
-        throw new ApiError(400, "Invalid event id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid event Id")
+            )
     }
 
     const participation = await Participation.findById(participationId)
 
     if (!participation) {
-        throw new ApiError(400, "Participation not found")
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "Participation not found")
+            )
     }
 
-    if (participation.team) {
-        const event = await Event.findById(participation.event)
+    const event = await Event.findById(participation.event)
 
-        if(!event.isteamevent){
-            throw new ApiError(400, "Not a team event")
+    if (participation.team) {
+        if (!event?.isteamevent) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, "Not a team event")
+                )
         }
 
         const teamMembers = await Teammembership.find({ team: { $eq: participation.team } })
 
-        if(teamMembers?.length > event.maxteamsize-1){
-            throw new ApiError(400, `Team size could be ${event.maxteamsize} at max`)
+        if (teamMembers?.length > event?.maxteamsize - 1) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `Team size could be ${event?.maxteamsize} at max`)
+                )
         }
 
-        if(teamMembers?.length < event.minteamsize-1){
-            throw new ApiError(400, `Team size should be at least ${event.minteamsize}`)
+        if (teamMembers?.length < event?.minteamsize - 1) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, `Team size should be at least ${event?.minteamsize}`)
+                )
         }
     }
 
-    if (!participation.registrationdetail) {
-        throw new ApiError(400, "Registration details missing")
+    if (event?.registrationform && !participation.registrationdetail) {
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Registration details missing")
+            )
     }
 
     participation.success = true
 
-    participation.save({validateBeforeSave: true})
+    participation.save({ validateBeforeSave: true })
 
     res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "",
-            "Participation successful"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "",
+                "Participation successful"
+            )
         )
-    )
 })
 
 export {

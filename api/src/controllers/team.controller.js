@@ -104,11 +104,19 @@ const addTeamMember = asyncHandler(async (req, res) => {
     const { userId } = req.body
 
     if (!isValidObjectId(teamId)) {
-        throw new ApiError(400, "Invalid team id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid team id")
+            )
     }
 
     if (!isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid user id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid user id")
+            )
     }
 
     const team = await Team.aggregate([
@@ -128,25 +136,45 @@ const addTeamMember = asyncHandler(async (req, res) => {
     ])
 
     if (!team?.length) {
-        throw new ApiError(404, "Team not found")
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "Team not found")
+            )
     }
 
     if (team[0].members.some((member) => (member.member === userId))) {
-        throw new ApiError(400, "User already in team")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "User already in team")
+            )
     }
 
     if (team[0].members?.length === event.maxteamsize - 1) {
-        throw new ApiError(400, "Maximum team size reached, can't add more members")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Maximum team size reached, can't add more members")
+            )
     }
 
     const user = await User.findById(userId).select("-password -refreshToken")
 
     if (!user) {
-        throw new ApiError(404, "User not found")
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "User not found")
+            )
     }
 
     if (user.usertype !== "student") {
-        throw new ApiError(400, "User type mismatch, can't add this type of user to a team")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "User type mismatch, can't add this type of user to a team")
+            )
     }
 
     const member = await Teammembership.create({
@@ -173,7 +201,11 @@ const removeTeamMember = asyncHandler(async (req, res) => {
     const { teammembershipId } = req.params
 
     if (!isValidObjectId(teammembershipId)) {
-        throw new ApiError(400, "Invalid team-membership id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid team-membership id")
+            )
     }
 
     const membership = await Teammembership.findById(teammembershipId)
@@ -183,7 +215,7 @@ const removeTeamMember = asyncHandler(async (req, res) => {
     try {
         await Teammembership.deleteOne(teammembershipId)
     } catch (error) {
-        throw new ApiError(400,)
+        new ApiError(500, "Something went wrong")
     }
 
     const updatedTeam = await Team.aggregate(
@@ -205,18 +237,26 @@ const getTeamDetail = asyncHandler(async (req, res) => {
     const { teamId } = req.params
 
     if (!isValidObjectId(teamId)) {
-        throw new ApiError(400, "Invalid team id")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Invalid team id")
+            )
     }
 
     const team = await Team.aggregate(
         commonTeamAggregationPipeline(teamId)
     )
 
-    if(!team?.length){
-        throw new ApiError(400, "Team not found")
+    if (!team?.length) {
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, "Team not found")
+            )
     }
 
-    res
+    return res
         .status(200)
         .json(
             new ApiResponse(

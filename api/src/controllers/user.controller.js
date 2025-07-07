@@ -10,7 +10,11 @@ const generateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId)
 
     if (!user) {
-        throw new ApiError(404, `User not found`)
+        return res
+            .status(404)
+            .json(
+                new ApiError(404, `User not found`)
+            )
     }
 
     try {
@@ -23,7 +27,11 @@ const generateAccessAndRefreshToken = async (userId) => {
         return { accessToken, refreshToken }
 
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating access and refresh tokens")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong while generating access and refresh tokens")
+            )
     }
 }
 
@@ -106,7 +114,11 @@ const registerUser = asyncHandler(async (req, res) => {
         if (avatar) {
             await deleteFromCloudinary(avatar.public_id)
         }
-        throw new ApiError(500, "Something went wrong while registering a user and images were deleted")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Something went wrong while registering a user and images were deleted")
+            )
     }
 })
 
@@ -203,7 +215,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken
 
     if (!incomingRefreshToken) {
-        throw new ApiError(401, "Refresh token is required")
+        return res
+            .status(401)
+            .json(
+                new ApiError(401, "Refresh token is required")
+            )
     }
 
     try {
@@ -215,11 +231,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         const user = await User.findById(decodedToken?._id)
 
         if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
+            return res
+                .status(401)
+                .json(
+                    new ApiError(401, "Invalid refresh token")
+                )
         }
 
         if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Invalid refresh token")
+            return res
+                .status(401)
+                .json(
+                    new ApiError(401, "Invalid refresh token")
+                )
         }
 
         const options = {
@@ -257,7 +281,11 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     const isPasswodValid = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswodValid) {
-        throw new ApiError(401, "Old password is incorrect")
+        return res
+            .status(401)
+            .json(
+                new ApiError(401, "Old password is incorrect")
+            )
     }
 
     user.password = newPassword
@@ -294,7 +322,11 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullname, username } = req.body
 
     if (!fullname?.trim() && !username?.trim()) {
-        throw new ApiError(400, "Fullname or a username is required!")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "Fullname or a username is required!")
+            )
     }
 
     const newFullname = fullname
@@ -307,7 +339,11 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 
         if (!user) {
-            throw new ApiError(500, "User not found")
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, "User not found")
+                )
         }
 
         if (newFullname) {
@@ -331,7 +367,11 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
             )
 
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while updating account details")
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, error.message || "Something went wrong while updating account details")
+            )
     }
 })
 
@@ -339,21 +379,33 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path
 
     if (!avatarLocalPath) {
-        throw new ApiError(500, "File is required")
+        return res
+            .status(400)
+            .json(
+                new ApiError(400, "File is required")
+            )
     }
 
     try {
         const avatar = await uploadOnCloudinary(avatarLocalPath)
 
         if (!avatar?.url) {
-            throw new ApiError(500, "Something went wrong while uploading the avatar file")
+            return res
+                .status(500)
+                .json(
+                    new ApiError(500, "Something went wrong while uploading the avatar file")
+                )
         }
 
 
         const user = await User.findById(req.user?._id).select("-password -refreshToken")
 
         if (!user) {
-            throw new ApiError(404, "User not found")
+            return res
+                .status(404)
+                .json(
+                    new ApiError(404, "User not found")
+                )
         }
 
         const oldAvatar = user.avatar
@@ -368,7 +420,11 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
                 new ApiResponse(200, updatedUser, "Avatar updated successfully")
             )
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while updating the avatar file")
+        return res
+                .status(500)
+                .json(
+                    new ApiError(500, error.message || "Something went wrong while updating the avatar file")
+                )
     }
 })
 
