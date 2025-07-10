@@ -11,6 +11,32 @@ const themeImageRoute = (eventId) => (`${eventBaseRoute}/${eventId}/theme-image`
 
 const regFormRoute = (eventId) => (`${eventBaseRoute}/${eventId}/form`)
 
+const futureEventsRoute = `${eventBaseRoute}/fetch`
+const orgFutureEventsRoute = `${eventBaseRoute}/fetch/org`
+const orgHistoryRoute = `${eventBaseRoute}/fetch/org-history`
+const stdFutureEventsRoute = `${eventBaseRoute}/fetch/org`
+const stdHistoryRoute = `${eventBaseRoute}/fetch/org-history`
+
+const eventFormBody = (event) => {
+    return {
+        name: event?.name || "",
+        description: event?.description || "",
+        organizer: event?.organizer || "",
+        domain: event?.domain || "",
+        location: event?.location || "",
+        city: event?.city || "",
+        date: event?.date || "",
+        duration: event?.duration || "",
+        registrationfees: event?.registrationfees || "",
+        lastregistrationdate:event?.lastregistrationdate || "",
+        isteamevent: event?.isteamevent? "Yes" : "No" || "No",
+        minteamsize: event?.minteamsize || "",
+        maxteamsize: event?.maxteamsize || "",
+        themeimage: event?.themeimage || "",
+    }
+}
+
+
 const uploadEvent = async(body) => {
     return await request(
         "POST",
@@ -71,6 +97,62 @@ const createForm = async(eventId) => {
     )
 }
 
+const fetchAllFutureEvents = async() => {
+    return await request(
+        "GET",
+        {},
+        futureEventsRoute,
+        {}
+    )
+}
+
+const fetchEventsWithQuery = async(query, sortOrder, filters) => {
+    return await request(
+        "POST",
+        {},
+        futureEventsRoute,
+        {
+            body: JSON.stringify({query, sortOrder, filters})
+        }
+    )
+}
+
+const fetchOrgFutureEvents = async()=> {
+    return await request(
+        "GET",
+        {},
+        orgFutureEventsRoute,
+        {}
+    )
+}
+
+const fetchOrgHistory = async()=> {
+    return await request(
+        "GET",
+        {},
+        orgHistoryRoute,
+        {}
+    )
+}
+
+const fetchStdFutureEvents = async()=> {
+    return await request(
+        "GET",
+        {},
+        stdFutureEventsRoute,
+        {}
+    )
+}
+
+const fetchStdHistory = async()=> {
+    return await request(
+        "GET",
+        {},
+        stdHistoryRoute,
+        {}
+    )
+}
+
 
 
 const formBaseRoute = `${config.serverUrl}/forms`
@@ -111,12 +193,19 @@ const deleteFormField = async(eventId, formId, formfieldId) => {
 
 
 export {
+    eventFormBody,
     uploadEvent,
     getEvent,
     updateEventDetails,
     deleteEvent,
     changeThemeImage,
     createForm,
+    fetchAllFutureEvents,
+    fetchEventsWithQuery,
+    fetchOrgFutureEvents,
+    fetchOrgHistory,
+    fetchStdFutureEvents,
+    fetchStdHistory,
 
     addFormField,
     getForm,
