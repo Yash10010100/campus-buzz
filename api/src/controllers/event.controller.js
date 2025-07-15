@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
-import { isValidObjectId, now, Schema } from "mongoose";
+import mongoose, { isValidObjectId, Schema } from "mongoose";
 import { Event } from "../models/event.model.js"
 import { Form } from "../models/form.model.js"
 import { Formfield } from "../models/formfield.model.js";
@@ -10,6 +10,153 @@ import { Participation } from "../models/participation.model.js";
 import { Team } from "../models/team.model.js";
 import { Teammembership } from "../models/teammember.model.js";
 import { Registrationdetail } from "../models/registrationdetail.model.js";
+
+const commonEventAggregationPipeline = (eventId, user) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(eventId)
+        }
+    },
+    {
+        $addFields: {
+            "themeimage": "$themeimage.url"
+        }
+    },
+    {
+        $lookup: {
+            from: 'forms',
+            localField: 'registrationform',
+            foreignField: '_id',
+            as: 'registrationform'
+        }
+    },
+    {
+        $addFields: {
+            'registrationform': {
+                $arrayElemAt: ['$registrationform', 0]
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: "formfields",
+            localField: "registrationform._id",
+            foreignField: "form",
+            as: "registrationform.fields"
+        }
+    },
+    {
+        $addFields: {
+            user: { ...user }
+        }
+    },
+    {
+        $lookup: {
+            from: "participations",
+            let: {
+                localField1: "$_id",
+                localField2: "$user._id"
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ["$event", "$$localField1"] },
+                                { $eq: ["$participant", "$$localField2"] }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: "participation"
+        }
+    },
+    {
+        $lookup: {
+            from: "teams",
+            foreignField: "_id",
+            localField: "participation.team",
+            as: "participation.team"
+        }
+    },
+    {
+        $addFields: {
+            "participation.team": {
+                $arrayElemAt: ["$participation.team", 0]
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: "teammemberships",
+            foreignField: "team",
+            localField: "participation.team._id",
+            as: "teammembers"
+        }
+    },
+    {
+        $unwind: "$teammembers",
+        preserveNullAndEmptyArrays: true
+    },
+    {
+        $lookup: {
+            from: "users",
+            foreignField: "_id",
+            localField: "teammembers.member",
+            as: "teammembers",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        usertype: 1,
+                        username: 1,
+                        email: 1,
+                        fullname: 1,
+                        avatar: 1,
+                    }
+                },
+            ]
+        }
+    },
+    {
+        $addFields: {
+            "teammembers": {
+                $arrayElemAt: ["$teammembers", 0]
+            }
+        }
+    },
+    {
+        $addFields: {
+            "teammembers.avatar": "$teammembers.avatar.url"
+        }
+    },
+    {
+        $group: {
+            _id: "$_id",
+            doc: { $first: "$$ROOT" },
+            teammembers: {
+                $push: "$teammembers"
+            }
+        }
+    },
+    {
+        $addFields: {
+            "doc.participation.team.members": "$teammembers"
+        }
+    },
+    {
+        $replaceRoot: {
+            newRoot: "$doc"
+        }
+    },
+    {
+        $project: {
+            teammembers: 0,
+            user: 0
+        }
+    }
+]
 
 const uploadEvent = asyncHandler(async (req, res) => {
     const { name, description, organizer, domain, location, city, date, duration, registrationfees, lastregistrationdate, isteamevent, minteamsize, maxteamsize } = req.body
@@ -38,6 +185,7 @@ const uploadEvent = asyncHandler(async (req, res) => {
             )
     }
 
+
     const imageLocalPath = req.file?.path
 
     if (!imageLocalPath) {
@@ -62,6 +210,7 @@ const uploadEvent = asyncHandler(async (req, res) => {
     try {
         const event = await Event.create({
             name,
+            owner: req.user?._id,
             description,
             organizer,
             domain,
@@ -408,7 +557,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 const getEvent = asyncHandler(async (req, res) => {
     const { eventId } = req.params
 
-    if (!isValidObjectId) {
+    if (!isValidObjectId(eventId)) {
         return res
             .status(400)
             .json(
@@ -416,7 +565,7 @@ const getEvent = asyncHandler(async (req, res) => {
             )
     }
 
-    const event = await event.findById(eventId)
+    const event = await Event.findById(eventId)
 
     if (!event) {
         return res
@@ -426,46 +575,68 @@ const getEvent = asyncHandler(async (req, res) => {
             )
     }
 
-    event.themeimage = event.themeimage?.url
+    const result = await Event.aggregate(
+        commonEventAggregationPipeline(event._id)
+    )
+
+    if (!result || !result.length) {
+        return res
+            .status(500)
+            .json(
+                new ApiError(500, "Something went wrong")
+            )
+    }
 
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                event,
+                result[0],
                 "Event found"
             )
         )
 })
 
 const fetchFutureEvents = asyncHandler(async (req, res) => {
-    const now = Date.now()
+    try {
+        const now = Date.now()
 
-    const events = await Event.find({ date: { $gt: now } }).sort({ ["date"]: 1 })
+        const events = await Event.find({ date: { $gt: now } }).sort({ ["date"]: 1 })
 
-    if (!events) {
+        if (!events) {
+            return res
+                .status(400)
+                .json(
+                    new ApiError(400, "Failed to fetch future events")
+                )
+        }
+
+        events.forEach((e) => {
+            e.themeimage = e.themeimage?.url
+        })
+
         return res
-            .status(400)
+            .status(200)
             .json(
-                new ApiError(400, "Failed to fetch future events")
+                new ApiResponse(
+                    200,
+                    events,
+                    "Future event fetched"
+                )
+            )
+
+    } catch (error) {
+        return res
+            .status(500)
+            .json(
+                new ApiError(
+                    500,
+                    "",
+                    error.message || "Something went wrong while fetching events"
+                )
             )
     }
-
-    events.forEach((e) => {
-        e.themeimage = e.themeimage?.urrl
-    })
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                events,
-                "Future event fetched"
-            )
-        )
-
 })
 
 const searchEventsWithQuery = asyncHandler(async (req, res) => {

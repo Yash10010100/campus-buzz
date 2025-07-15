@@ -14,21 +14,24 @@ import {
     currentStudentParticipationEvents,
     pastParticipationEvents
 } from "../controllers/event.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router()
 
 router.use(verifyJWT)
 
-router.route("/").post(uploadEvent)
+router.route("/").post(upload.single("themeimage"),uploadEvent)
 
-router.route("/:eventId")
+router.route("/access/:eventId")
 .get(getEvent)
-.patch(updateEventDetails)
 .delete(deleteEvent)
 
-router.route("/:eventId/theme-image").patch(changeThemeImage)
+router.route("/update/:eventId/details").patch(changeThemeImage)
+.patch(updateEventDetails)
 
-router.route("/:eventId/form").post(createRegistrationForm)
+router.route("/update/:eventId/theme-image").patch(changeThemeImage)
+
+router.route("/update/:eventId/form").post(createRegistrationForm)
 
 router.route("/fetch")
 .get(fetchFutureEvents)
