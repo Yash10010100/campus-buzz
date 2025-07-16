@@ -47,7 +47,7 @@ const commonEventAggregationPipeline = (eventId, user) => [
     },
     {
         $addFields: {
-            user: { ...user }
+            user: user
         }
     },
     {
@@ -73,6 +73,13 @@ const commonEventAggregationPipeline = (eventId, user) => [
         }
     },
     {
+        $addFields: {
+            "participation": {
+                $arrayElemAt: ["$participation", 0]
+            }
+        }
+    },
+    {
         $lookup: {
             from: "teams",
             foreignField: "_id",
@@ -87,75 +94,75 @@ const commonEventAggregationPipeline = (eventId, user) => [
             }
         }
     },
-    {
-        $lookup: {
-            from: "teammemberships",
-            foreignField: "team",
-            localField: "participation.team._id",
-            as: "teammembers"
-        }
-    },
-    {
-        $unwind: "$teammembers",
-        preserveNullAndEmptyArrays: true
-    },
-    {
-        $lookup: {
-            from: "users",
-            foreignField: "_id",
-            localField: "teammembers.member",
-            as: "teammembers",
-            pipeline: [
-                {
-                    $project: {
-                        _id: 1,
-                        usertype: 1,
-                        username: 1,
-                        email: 1,
-                        fullname: 1,
-                        avatar: 1,
-                    }
-                },
-            ]
-        }
-    },
-    {
-        $addFields: {
-            "teammembers": {
-                $arrayElemAt: ["$teammembers", 0]
-            }
-        }
-    },
-    {
-        $addFields: {
-            "teammembers.avatar": "$teammembers.avatar.url"
-        }
-    },
-    {
-        $group: {
-            _id: "$_id",
-            doc: { $first: "$$ROOT" },
-            teammembers: {
-                $push: "$teammembers"
-            }
-        }
-    },
-    {
-        $addFields: {
-            "doc.participation.team.members": "$teammembers"
-        }
-    },
-    {
-        $replaceRoot: {
-            newRoot: "$doc"
-        }
-    },
-    {
-        $project: {
-            teammembers: 0,
-            user: 0
-        }
-    }
+    // {
+    //     $lookup: {
+    //         from: "teammemberships",
+    //         foreignField: "team",
+    //         localField: "participation.team._id",
+    //         as: "teammembers"
+    //     }
+    // },
+    // {
+    //     $unwind: "$teammembers",
+    //     preserveNullAndEmptyArrays: true
+    // },
+    // {
+    //     $lookup: {
+    //         from: "users",
+    //         foreignField: "_id",
+    //         localField: "teammembers.member",
+    //         as: "teammembers",
+    //         pipeline: [
+    //             {
+    //                 $project: {
+    //                     _id: 1,
+    //                     usertype: 1,
+    //                     username: 1,
+    //                     email: 1,
+    //                     fullname: 1,
+    //                     avatar: 1,
+    //                 }
+    //             },
+    //         ]
+    //     }
+    // },
+    // {
+    //     $addFields: {
+    //         "teammembers": {
+    //             $arrayElemAt: ["$teammembers", 0]
+    //         }
+    //     }
+    // },
+    // {
+    //     $addFields: {
+    //         "teammembers.avatar": "$teammembers.avatar.url"
+    //     }
+    // },
+    // {
+    //     $group: {
+    //         _id: "$_id",
+    //         doc: { $first: "$$ROOT" },
+    //         teammembers: {
+    //             $push: "$teammembers"
+    //         }
+    //     }
+    // },
+    // {
+    //     $addFields: {
+    //         "doc.participation.team.members": "$teammembers"
+    //     }
+    // },
+    // {
+    //     $replaceRoot: {
+    //         newRoot: "$doc"
+    //     }
+    // },
+    // {
+    //     $project: {
+    //         teammembers: 0,
+    //         user: 0
+    //     }
+    // }
 ]
 
 const uploadEvent = asyncHandler(async (req, res) => {
@@ -576,8 +583,50 @@ const getEvent = asyncHandler(async (req, res) => {
     }
 
     const result = await Event.aggregate(
-        commonEventAggregationPipeline(event._id)
+        commonEventAggregationPipeline(event._id, req.user)
     )
+
+    if (result && result.length && result[0].participation?.team) {
+        const teammembers = await Teammembership.aggregate([
+            {
+                $match: {
+                    team: result[0].participation?.team?._id
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    foreignField: "_id",
+                    localField: "member",
+                    as: "member",
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                usertype: 1,
+                                username: 1,
+                                email: 1,
+                                fullname: 1,
+                                avatar: 1,
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $addFields: {
+                    "member.avatar": "$member.avatar.url"
+                }
+            },
+            {
+                $project: {
+                    member: 1
+                }
+            }
+        ])
+
+        result[0].participation.team.members = teammembers
+    }
 
     if (!result || !result.length) {
         return res
