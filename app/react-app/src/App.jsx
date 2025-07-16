@@ -20,16 +20,18 @@ function App() {
         .then((res) => {
           dispatch(storeLogin({ user: res.data }))
           setLoading(false)
+          // navigate("/user")
         })
         .catch((err) => {
           refreshAccessTokens()
             .then((res) => {
               dispatch(storeLogin({ user: res.data.user }))
               setLoading(false)
-              navigate("/events")
+              // navigate("/user")
             })
             .catch((err) => {
               setLoading(false)
+              navigate("/")
             })
         })
     }

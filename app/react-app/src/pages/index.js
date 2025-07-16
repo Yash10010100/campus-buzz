@@ -6,7 +6,7 @@ import Dashboard from "./Dashboard";
 import History from "./History";
 import Preferences from "./Preferences";
 import Participants from "./Participants";
-
+import EventPage from "./EventPage";
 
 export {
     Login,
@@ -17,6 +17,7 @@ export {
     History,
     Preferences,
     Participants,
+    EventPage
 
     
 }

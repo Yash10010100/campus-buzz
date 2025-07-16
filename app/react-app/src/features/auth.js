@@ -14,7 +14,7 @@ const updateAvatarRoute = "/update-avatar"
 const register = async(body)=>{
     return await request(
         "POST",
-        {},
+        null,
         `${userBaseRoute}${registerRoute}`,
         {
             body:JSON.stringify(body)
@@ -25,7 +25,7 @@ const register = async(body)=>{
 const login = async(body)=>{
     return await request(
         "POST",
-        {},
+        null,
         `${userBaseRoute}${loginRoute}`,
         {
             body:JSON.stringify(body)
@@ -36,7 +36,7 @@ const login = async(body)=>{
 const logout = async()=>{
     return await request(
         "POST",
-        {},
+        null,
         `${userBaseRoute}${logoutRoute}`,
     )
 }
@@ -44,7 +44,7 @@ const logout = async()=>{
 const refreshAccessTokens = async()=>{
     return await request(
         "POST",
-        {},
+        null,
         `${userBaseRoute}${refreshTokensRoute}`,
     )
 }
@@ -52,7 +52,7 @@ const refreshAccessTokens = async()=>{
 const getCurrentUser = async()=>{
     return await request(
         "GET",
-        {},
+        null,
         `${userBaseRoute}${currentUserRoute}`,
     )
 }
@@ -60,7 +60,7 @@ const getCurrentUser = async()=>{
 const changePassword = async(body)=>{
     return await request(
         "POST",
-        {},
+        null,
         `${userBaseRoute}${changePasswordRoute}`,
         {
             body:JSON.stringify(body)
@@ -71,7 +71,7 @@ const changePassword = async(body)=>{
 const updateAccount = async(body)=>{
     return await request(
         "PATCH",
-        {},
+        null,
         `${userBaseRoute}${updateAccountRoute}`,
         {
             body:JSON.stringify(body)

@@ -29,7 +29,7 @@ function Login() {
             const res = await serverLogin(data)
             if(res){
                 dispatch(storeLogin({user:res.data.user}))
-                navigate("/events")
+                navigate("/user")
             }
         } catch (error) {
             setError(error.message)

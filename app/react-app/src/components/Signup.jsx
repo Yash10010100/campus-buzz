@@ -35,7 +35,7 @@ function Signup() {
 
             if (res) {
                 dispatch(storeLogin({ user: res.data }))
-                navigate("/events")
+                navigate("/user")
             }
         } catch (error) {
             setError(error.message)

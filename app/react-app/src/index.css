@@ -2,26 +2,29 @@
 
 :root {
   /* --main-color: #EFEDE3; */
-  /* --sec-color: #292624; */
-
   /* --main-color: #f1f1f1; */
   /* --main-color: #f0ede5; */
+  --main-color: #282424;
+  /* --main-color: #ddddcf; */
+  
+  /* --sec-color: #292624; */
   /* --sec-color: #3e5954; */
   
-  --main-color: #dcd7c9;
+  /* --main-color: #dcd7c9; */
+  --main-color: #fbf2ec;
   --sec-color: #3f4f4f;
-  
   --sec-hover-color: #516060fa;
 
   /* --main-border-color: #5E4075; */
-  --main-border-color: #322626;
-  --main-hover-border-color: #6b7878;
+  --main-border-color: #283a42;
+  --main-hover-border-color: #7c878a;
 
   --accent-color: #afb59d;
+  --accent-color: #82a08f;
+  /* --accent-color: #86ab9f; */
   /* --accent-color: #a5abac; */
   /* --accent-color: #5a0006; */
   /* --accent-color: #da1d65; */
-
   user-select: none;
   letter-spacing: 2px;
 }
@@ -306,7 +309,8 @@
 /* From Uiverse.io by SouravBandyopadhyay */ 
 .hourglassBackground {
   position: relative;
-  background-color: rgb(71, 60, 60);
+  background-color: var(--sec-color);
+  /* background-color: rgb(71, 60, 60); */
   height: 130px;
   width: 130px;
   border-radius: 50%;

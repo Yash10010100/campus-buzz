@@ -29,17 +29,20 @@ function Header() {
         }
         setError('')
         setMessage('')
+
+        if(!data.username || !data.username.trim()){
+            setValue("username",user?.username)
+            data.username=user?.username
+        }
+
+        if(!data.fullname || !data.fullname.trim()){
+            setValue("fullname",user?.fullname)
+            data.fullname=user?.fullname
+        }
+
         if (data.username === user.username && data.fullname === user.fullname) {
             setMessage("No changes")
             return
-        }
-
-        if (data.username === user.username) {
-            data.username = ""
-        }
-
-        if (data.fullname === user.fullname) {
-            data.fullname = ""
         }
 
         try {
@@ -61,7 +64,7 @@ function Header() {
             <div></div>
             {/* <Search /> */}
             <div className={` relative h-12`}>
-                <div className={` absolute right-0 top-0 rounded-xl h-full flex duration-300 overflow-hidden z-80 ${dropdown ? "bg-[var(--sec-color)]" : "bg-[#fcfcfc]"}`}>
+                <div title='Account' className={` border-2 border-black/30 absolute right-0 top-0 rounded-xl h-full flex duration-300 overflow-hidden z-80 ${dropdown ? "bg-[var(--sec-color)]" : "bg-[#fcfcfc]"}`}>
                     <button
                         className={` p-0 m-0 outline-none border-none`}
                         onClick={() => {
@@ -83,7 +86,7 @@ function Header() {
                 </div>
                 {
                     // dropdown && 
-                    <div className={` ${dropdown ? "w-80 h-104 bg-[#fcfcfc]/95 border-[var(--main-border-color)]/30 p-1 px-2 z-10  top-[-6px] right-[-7px]" : "p-0 w-0 h-0 bg-transparent border-transparent z-0 top-6 right-6"} absolute rounded-[15px] duration-400 border-2 overflow-hidden flex flex-col `}>
+                    <div className={` ${dropdown ? "w-80 h-104 bg-[#fcfcfc]/95 border-black/10 p-1 px-2 z-10  top-[-6px] right-[-7px]" : "p-0 w-0 h-0 bg-transparent border-transparent z-0 top-6 right-6"} absolute rounded-[15px] duration-400 border-2 overflow-hidden flex flex-col `}>
                         <div className={` ${dropdown ? ' scale-100' : ' scale-0'} duration-400 space-y-2.5 overflow-hidden `}>
                             <form onSubmit={handleSubmit(updateProfile)}>
                                 <div className=' flex flex-col gap-2.5'>
