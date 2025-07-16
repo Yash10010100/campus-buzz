@@ -32,9 +32,12 @@ function LogoutBtn() {
             <Button
                 disabled={disable}
                 onClick={logout}
+                border='border-3'
                 bgColor='bg-[#ca0101] '
-                borderColor='border-[#e11025]'
-                activeClasses='active:bg-[#ed2323] active:border-[#ad0606]'
+                // borderColor='border-[#e11025]'
+                // activeClasses='active:bg-[#ed2323] active:border-[#ad0606]'
+                borderColor='border-white/30'
+                activeClasses='active:bg-[#ca0101] active:border-black/20'
                 hoverClasses='hover:bg-[#d61212]'
                 className={` py-2 px-6 text-white rounded-lg ${disable ? 'cursor-wait' : ''}`}
             >

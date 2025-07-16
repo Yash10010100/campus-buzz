@@ -16,6 +16,7 @@ import ProfileInput from "./ProfileInput";
 import LogoutBtn from "./LogoutBtn";
 import EventForm from "./EventForm";
 import EventCard from "./EventCard";
+import Event from "./Event";
 import OrgDashboard from "./OrgDashboard";
 import StdDashboard from "./StdDashboard";
 import AllEvents from "./AllEvents";
@@ -46,6 +47,7 @@ export {
     LogoutBtn,
     EventForm,
     EventCard,
+    Event,
     OrgDashboard,
     StdDashboard,
     AllEvents,

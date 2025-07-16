@@ -14,7 +14,7 @@ function CommonLayout({
                             <Header />
                         </div>
                     </div>
-                    <div className=' border-l-2 border-b-2 border-[var(--main-border-color)] rounded-bl-[18px] p-2 h-full overflow-auto'>
+                    <div className=' border-l-2 border-b-2 border-[var(--main-border-color)] rounded-bl-[18px] h-full overflow-auto'>
                         <>{children}</>
                     </div>
                 </div>

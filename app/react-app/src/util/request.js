@@ -9,9 +9,8 @@ const request = async (
             url,
             {
                 method:method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...headers
+                headers: headers || {
+                    "Content-Type": "application/json"
                 },
                 credentials: "include",
                 ...options

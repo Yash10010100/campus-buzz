@@ -16,15 +16,12 @@ function AuthContainer({
 
     useEffect(() => {
             if (authentication && status !== authentication) {
-                navigate("/")
+                navigate("/user")
             }
-            else if (!authentication && status !== authentication) {
+            else if (!authentication && status !== authentication) { 
                 navigate("/user")
             }
             else if (usertype && userdata?.usertype !== usertype) {
-                console.log(usertype);
-                console.log(userdata);
-
                 navigate("/user")
             }
             setLoading(false)

@@ -55,7 +55,7 @@ function Sidebar({
                     {user?.usertype === "student" ? (stdelements.map((e) => (
                         <li className={` text-white text-lg border-b-2   duration-200 ${e.name === current ? "bg-[var(--sec-hover-color)] border-[var(--accent-color)]" : "border-[var(--main-border-color)] bg-[var(--sec-color)] hover:bg-[var(--sec-hover-color)] hover:border-[var(--main-hover-border-color)] hover:shadow-[inset_3px_2px_30px_6px_var(--sec-color)]"}`} key={e.name}><Link to={e.to}><p className=' p-3'>{e.name}</p></Link></li>
                     ))) : user?.usertype === "organizer" ? (orgelements.map((e) => (
-                        <li className={` text-white text-lg border-b-2  hover:border-[var(--main-hover-border-color)] duration-200 ${e.name === current ? " bg-[var(--sec-color)]/70 border-[var(--accent-color)] shadow-[inset_3px_2px_30px_6px_var(--sec-color)] inset-1" : "border-[var(--main-border-color)] bg-[var(--sec-color)] hover:bg-[var(--sec-hover-color)]"}`} key={e.name}><Link to={e.to}><p className=' p-3'>{e.name}</p></Link></li>
+                        <li className={` text-white text-lg border-b-2   duration-200 ${e.name === current ? "bg-[var(--sec-hover-color)] border-[var(--accent-color)]" : "border-[var(--main-border-color)] bg-[var(--sec-color)] hover:bg-[var(--sec-hover-color)] hover:border-[var(--main-hover-border-color)] hover:shadow-[inset_3px_2px_30px_6px_var(--sec-color)]"}`} key={e.name}><Link to={e.to}><p className=' p-3'>{e.name}</p></Link></li>
                     ))) : ""
                     }
                 </ul>

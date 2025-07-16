@@ -19,6 +19,7 @@ import {
   Participants,
   Preferences,
   Signup,
+  EventPage,
 } from './pages'
 
 const router = createBrowserRouter([
@@ -29,7 +30,9 @@ const router = createBrowserRouter([
       {
         path: "",
         element: (
-          <Home />
+          <AuthContainer authentication={false}>
+            <Home />
+          </AuthContainer>
         )
       },
       {
@@ -92,11 +95,24 @@ const router = createBrowserRouter([
       },
       {
         path: "/events",
-        element: (
-          <AuthContainer authentication>
-            <Events />
-          </AuthContainer>
-        )
+        children: [
+          {
+            path: "",
+            element: (
+              <AuthContainer authentication>
+                <Events />
+              </AuthContainer>
+            )
+          },
+          {
+            path: ":eventId",
+            element: (
+              <AuthContainer authentication>
+                <EventPage />
+              </AuthContainer>
+            )
+          }
+        ],
       }
     ]
   }

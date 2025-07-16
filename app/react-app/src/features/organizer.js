@@ -5,34 +5,32 @@ const eventBaseRoute = `${config.serverUrl}/events`
 
 const uploadEventRoute = `${eventBaseRoute}`
 
-const accessEventRoute = (eventId) => (`${eventBaseRoute}/${eventId}`)
+// const accessEventRoute = (eventId) => (`${eventBaseRoute}/${eventId}`)
 
-const themeImageRoute = (eventId) => (`${eventBaseRoute}/${eventId}/theme-image`)
+// const themeImageRoute = (eventId) => (`${eventBaseRoute}/${eventId}/theme-image`)
 
-const regFormRoute = (eventId) => (`${eventBaseRoute}/${eventId}/form`)
+// const regFormRoute = (eventId) => (`${eventBaseRoute}/${eventId}/form`)
 
 const futureEventsRoute = `${eventBaseRoute}/fetch`
 const orgFutureEventsRoute = `${eventBaseRoute}/fetch/org`
 const orgHistoryRoute = `${eventBaseRoute}/fetch/org-history`
-const stdFutureEventsRoute = `${eventBaseRoute}/fetch/org`
-const stdHistoryRoute = `${eventBaseRoute}/fetch/org-history`
 
 const eventFormBody = (event) => {
     return {
-        name: event?.name || "",
-        description: event?.description || "",
-        organizer: event?.organizer || "",
-        domain: event?.domain || "",
-        location: event?.location || "",
-        city: event?.city || "",
-        date: event?.date || "",
-        duration: event?.duration || "",
-        registrationfees: event?.registrationfees || "",
-        lastregistrationdate:event?.lastregistrationdate || "",
-        isteamevent: event?.isteamevent? "Yes" : "No" || "No",
-        minteamsize: event?.minteamsize || "",
-        maxteamsize: event?.maxteamsize || "",
-        themeimage: event?.themeimage || "",
+        "name": event?.name || "",
+        "description": event?.description || "",
+        "organizer": event?.organizer || "",
+        "domain": event?.domain || "",
+        "location": event?.location || "",
+        "city": event?.city || "",
+        "date": event?.date || "",
+        "duration": event?.duration || "",
+        "registrationfees": event?.registrationfees || "",
+        "lastregistrationdate":event?.lastregistrationdate || "",
+        "isteamevent": event?.isteamevent? "Yes" : "No" || "No",
+        "minteamsize": event?.minteamsize || "",
+        "maxteamsize": event?.maxteamsize || "",
+        "themeimage": event?.themeimage || "",
     }
 }
 
@@ -43,7 +41,7 @@ const uploadEvent = async(body) => {
         {},
         uploadEventRoute,
         {
-            body: JSON.stringify(body)
+            body:body
         }
     )
 }
@@ -51,8 +49,8 @@ const uploadEvent = async(body) => {
 const getEvent = async(eventId) => {
     return await request(
         "GET",
-        {},
-        accessEventRoute(eventId),
+        null,
+        `${eventBaseRoute}/access/${eventId}`,
         {}
     )
 }
@@ -60,8 +58,8 @@ const getEvent = async(eventId) => {
 const updateEventDetails = async(eventId, body) => {
     return await request(
         "PATCH",
-        {},
-        accessEventRoute(eventId),
+        null,
+        `${eventBaseRoute}/update/${eventId}/details`,
         {
             body:JSON.stringify(body)
         }
@@ -71,8 +69,8 @@ const updateEventDetails = async(eventId, body) => {
 const deleteEvent = async(eventId) => {
     return await request(
         "DELETE",
-        {},
-        accessEventRoute(eventId),
+        null,
+        `${eventBaseRoute}/access/${eventId}`,
         {}
     )
 }
@@ -81,7 +79,7 @@ const changeThemeImage = async(eventId, body) => {
     return await request(
         "PATCH",
         {},
-        themeImageRoute(eventId),
+        `${eventBaseRoute}/update/${eventId}/theme-image`,
         {
             body: JSON.stringify(body)
         }
@@ -91,8 +89,8 @@ const changeThemeImage = async(eventId, body) => {
 const createForm = async(eventId) => {
     return await request(
         "POST",
-        {},
-        regFormRoute(eventId),
+        null,
+        `${eventBaseRoute}/update/${eventId}/form`,
         {}
     )
 }
@@ -100,7 +98,7 @@ const createForm = async(eventId) => {
 const fetchAllFutureEvents = async() => {
     return await request(
         "GET",
-        {},
+        null,
         futureEventsRoute,
         {}
     )
@@ -109,7 +107,7 @@ const fetchAllFutureEvents = async() => {
 const fetchEventsWithQuery = async(query, sortOrder, filters) => {
     return await request(
         "POST",
-        {},
+        null,
         futureEventsRoute,
         {
             body: JSON.stringify({query, sortOrder, filters})
@@ -120,7 +118,7 @@ const fetchEventsWithQuery = async(query, sortOrder, filters) => {
 const fetchOrgFutureEvents = async()=> {
     return await request(
         "GET",
-        {},
+        null,
         orgFutureEventsRoute,
         {}
     )
@@ -129,26 +127,8 @@ const fetchOrgFutureEvents = async()=> {
 const fetchOrgHistory = async()=> {
     return await request(
         "GET",
-        {},
+        null,
         orgHistoryRoute,
-        {}
-    )
-}
-
-const fetchStdFutureEvents = async()=> {
-    return await request(
-        "GET",
-        {},
-        stdFutureEventsRoute,
-        {}
-    )
-}
-
-const fetchStdHistory = async()=> {
-    return await request(
-        "GET",
-        {},
-        stdHistoryRoute,
         {}
     )
 }
@@ -164,7 +144,7 @@ const deleteFieldRoute = (eventId, formId, formfieldId) => (`${formBaseRoute}/${
 const addFormField = async(eventId, formId, body) => {
     return await request(
         "POST",
-        {},
+        null,
         addFieldOrGetFormRoute(eventId, formId),
         {
             body: JSON.stringify(body)
@@ -175,7 +155,7 @@ const addFormField = async(eventId, formId, body) => {
 const getForm = async(eventId, formId) => {
     return await request(
         "GET",
-        {},
+        null,
         addFieldOrGetFormRoute(eventId, formId),
         {}
     )
@@ -184,7 +164,7 @@ const getForm = async(eventId, formId) => {
 const deleteFormField = async(eventId, formId, formfieldId) => {
     return await request(
         "DELETE",
-        {},
+        null,
         deleteFieldRoute(eventId, formId, formfieldId),
         {}
     )
@@ -204,8 +184,6 @@ export {
     fetchEventsWithQuery,
     fetchOrgFutureEvents,
     fetchOrgHistory,
-    fetchStdFutureEvents,
-    fetchStdHistory,
 
     addFormField,
     getForm,
