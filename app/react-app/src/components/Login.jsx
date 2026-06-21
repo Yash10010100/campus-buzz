@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button, ErrorMSG, Input, Select } from './'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { login as serverLogin } from '../features/auth'
 import { login as storeLogin } from '../redux/authSlice'
 
 function Login() {
 
+    const status = useSelector(state=>state.auth.status)
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -38,7 +39,7 @@ function Login() {
         }
     }
 
-    return (
+    return !status?(
         <div className=' flex flex-col gap-4 text-center'>
             <div>
                 <h1 className=' font-medium text-lg'>
@@ -81,7 +82,7 @@ function Login() {
                 >Sign in</Button>
             </form>
         </div>
-    )
+    ):null
 }
 
 export default Login

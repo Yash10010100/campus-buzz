@@ -3,12 +3,15 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
     addFormField,
     deleteAField,
-    getForm
+    getForm,
+    getFormDataTypes
 } from "../controllers/form.controller.js";
 
 const router = Router()
 
 router.use(verifyJWT)
+
+router.route("/data-types").get(getFormDataTypes)
 
 router.route("/:eventId/:formId")
 .post(addFormField)

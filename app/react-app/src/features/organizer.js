@@ -23,30 +23,30 @@ const eventFormBody = (event) => {
         "domain": event?.domain || "",
         "location": event?.location || "",
         "city": event?.city || "",
-        "date": event?.date || "",
-        "duration": event?.duration || "",
+        "date": event ? `${new Date(event.date).toISOString().slice(0, 16)}` : "",
+        "duration": event?.duration || null,
         "registrationfees": event?.registrationfees || "",
-        "lastregistrationdate":event?.lastregistrationdate || "",
-        "isteamevent": event?.isteamevent? "Yes" : "No" || "No",
-        "minteamsize": event?.minteamsize || "",
-        "maxteamsize": event?.maxteamsize || "",
+        "lastregistrationdate": event ? `${new Date(event.lastregistrationdate).toISOString().slice(0, 16)}` : "",
+        "isteamevent": event?.isteamevent ? true : false || false,
+        "minteamsize": event?.minteamsize || null,
+        "maxteamsize": event?.maxteamsize || null,
         "themeimage": event?.themeimage || "",
     }
 }
 
 
-const uploadEvent = async(body) => {
+const uploadEvent = async (body) => {
     return await request(
         "POST",
         {},
         uploadEventRoute,
         {
-            body:body
+            body: body
         }
     )
 }
 
-const getEvent = async(eventId) => {
+const getEvent = async (eventId) => {
     return await request(
         "GET",
         null,
@@ -55,18 +55,18 @@ const getEvent = async(eventId) => {
     )
 }
 
-const updateEventDetails = async(eventId, body) => {
+const updateEventDetails = async (eventId, body) => {
     return await request(
         "PATCH",
         null,
         `${eventBaseRoute}/update/${eventId}/details`,
         {
-            body:JSON.stringify(body)
+            body: JSON.stringify(body)
         }
     )
 }
 
-const deleteEvent = async(eventId) => {
+const deleteEvent = async (eventId) => {
     return await request(
         "DELETE",
         null,
@@ -75,7 +75,7 @@ const deleteEvent = async(eventId) => {
     )
 }
 
-const changeThemeImage = async(eventId, body) => {
+const changeThemeImage = async (eventId, body) => {
     return await request(
         "PATCH",
         {},
@@ -86,7 +86,7 @@ const changeThemeImage = async(eventId, body) => {
     )
 }
 
-const createForm = async(eventId) => {
+const createForm = async (eventId) => {
     return await request(
         "POST",
         null,
@@ -95,7 +95,7 @@ const createForm = async(eventId) => {
     )
 }
 
-const fetchAllFutureEvents = async() => {
+const fetchAllFutureEvents = async () => {
     return await request(
         "GET",
         null,
@@ -104,18 +104,18 @@ const fetchAllFutureEvents = async() => {
     )
 }
 
-const fetchEventsWithQuery = async(query, sortOrder, filters) => {
+const fetchEventsWithQuery = async (query, sortOrder, filters) => {
     return await request(
         "POST",
         null,
         futureEventsRoute,
         {
-            body: JSON.stringify({query, sortOrder, filters})
+            body: JSON.stringify({ query, sortOrder, filters })
         }
     )
 }
 
-const fetchOrgFutureEvents = async()=> {
+const fetchOrgFutureEvents = async () => {
     return await request(
         "GET",
         null,
@@ -124,7 +124,7 @@ const fetchOrgFutureEvents = async()=> {
     )
 }
 
-const fetchOrgHistory = async()=> {
+const fetchOrgHistory = async () => {
     return await request(
         "GET",
         null,
@@ -137,11 +137,21 @@ const fetchOrgHistory = async()=> {
 
 const formBaseRoute = `${config.serverUrl}/forms`
 
+
 const addFieldOrGetFormRoute = (eventId, formId) => (`${formBaseRoute}/${eventId}/${formId}`)
 
 const deleteFieldRoute = (eventId, formId, formfieldId) => (`${formBaseRoute}/${eventId}/${formId}/${formfieldId}`)
 
-const addFormField = async(eventId, formId, body) => {
+const getTypes = async () => {
+    return await request(
+        "GET",
+        null,
+        `${formBaseRoute}/data-types`,
+        {}
+    )
+}
+
+const addFormField = async (eventId, formId, body) => {
     return await request(
         "POST",
         null,
@@ -152,7 +162,7 @@ const addFormField = async(eventId, formId, body) => {
     )
 }
 
-const getForm = async(eventId, formId) => {
+const getForm = async (eventId, formId) => {
     return await request(
         "GET",
         null,
@@ -161,7 +171,7 @@ const getForm = async(eventId, formId) => {
     )
 }
 
-const deleteFormField = async(eventId, formId, formfieldId) => {
+const deleteFormField = async (eventId, formId, formfieldId) => {
     return await request(
         "DELETE",
         null,
@@ -185,6 +195,7 @@ export {
     fetchOrgFutureEvents,
     fetchOrgHistory,
 
+    getTypes,
     addFormField,
     getForm,
     deleteFormField,

@@ -10,11 +10,7 @@ const generateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId)
 
     if (!user) {
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, `User not found`)
-            )
+        throw new ApiError(404, `User not found`)
     }
 
     try {
@@ -27,11 +23,7 @@ const generateAccessAndRefreshToken = async (userId) => {
         return { accessToken, refreshToken }
 
     } catch (error) {
-        return res
-            .status(500)
-            .json(
-                new ApiError(500, error.message || "Something went wrong while generating access and refresh tokens")
-            )
+        throw new ApiError(500, error.message || "Something went wrong while generating access and refresh tokens")
     }
 }
 
@@ -41,19 +33,11 @@ const registerUser = asyncHandler(async (req, res) => {
     if (
         [usertype, fullname, email, username, password].some((field) => (field?.trim() === ""))
     ) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "All fields are required")
-            )
+        throw new ApiError(400, "All fields are required")
     }
 
     if (usertype !== "student" && usertype !== "organizer") {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid user type")
-            )
+        throw new ApiError(400, "Invalid user type")
     }
 
     const existedUser = await User.findOne({
@@ -61,18 +45,11 @@ const registerUser = asyncHandler(async (req, res) => {
     })
 
     if (existedUser) {
-        if (email === existedUser.email)
-            return res
-                .status(409)
-                .json(
-                    new ApiError(409, "User with same email already exists")
-                )
-        else
-            return res
-                .status(409)
-                .json(
-                    new ApiError(409, "User with same username already exists")
-                )
+        if (email === existedUser.email) {
+            throw new ApiError(409, "User with same email already exists")
+        } else {
+            throw new ApiError(409, "User with same username already exists")
+        }
     }
 
     console.warn(req.files)
@@ -85,11 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
             avatar = await uploadOnCloudinary(avatarLocalPath)
         } catch (error) {
             console.log("Error uploading avatar", error);
-            return res
-                .status(500)
-                .json(
-                    new ApiError(500, "Failed to upload avatar")
-                )
+            throw new ApiError(500, "Failed to upload avatar")
         }
     }
 
@@ -111,11 +84,7 @@ const registerUser = asyncHandler(async (req, res) => {
         )
 
         if (!user) {
-            return res
-                .status(500)
-                .json(
-                    new ApiError(500, "Something went wrong while registering a user")
-                )
+            throw new ApiError(500, "Something went wrong while registering a user")
         }
 
         user.avatar = user.avatar?.url
@@ -138,11 +107,7 @@ const registerUser = asyncHandler(async (req, res) => {
         if (avatar) {
             await deleteFromCloudinary(avatar.public_id)
         }
-        return res
-            .status(500)
-            .json(
-                new ApiError(500, "Something went wrong while registering a user and images were deleted")
-            )
+        throw new ApiError(500, "Something went wrong while registering a user and images were deleted")
     }
 })
 
@@ -150,27 +115,15 @@ const loginUser = asyncHandler(async (req, res) => {
     const { usertype, usernameoremail, password } = req.body
 
     if (!usertype?.trim()) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "User type is required")
-            )
+        throw new ApiError(400, "User type is required")
     }
 
     if (!usernameoremail?.trim()) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Username or email is required")
-            )
+        throw new ApiError(400, "Username or email is required")
     }
 
     if (!password?.trim()) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Password is required")
-            )
+        throw new ApiError(400, "Password is required")
     }
 
     const user = await User.findOne({
@@ -178,29 +131,17 @@ const loginUser = asyncHandler(async (req, res) => {
     })
 
     if (!user) {
-        return res
-            .status(409)
-            .json(
-                new ApiError(409, "User doesn't exist")
-            )
+        throw new ApiError(409, "User doesn't exist")
     }
 
     if (user.usertype !== usertype) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "User type mismatch")
-            )
+        throw new ApiError(400, "User type mismatch")
     }
 
     const isPasswordCorrect = await user.isPasswordCorrect(password)
 
     if (!isPasswordCorrect) {
-        return res
-            .status(401)
-            .json(
-                new ApiError(401, "Invalid password")
-            )
+        throw new ApiError(401, "Invalid password")
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
@@ -208,11 +149,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!loggedInUser) {
-        return res
-            .status(500)
-            .json(
-                new ApiError(500, "Something went wrong")
-            )
+        throw new ApiError(500, "Something went wrong")
     }
 
     loggedInUser.avatar = loggedInUser?.avatar?.url
@@ -269,11 +206,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken
 
     if (!incomingRefreshToken) {
-        return res
-            .status(401)
-            .json(
-                new ApiError(401, "Refresh token is required")
-            )
+        throw new ApiError(401, "Refresh token is required")
     }
 
     try {
@@ -285,19 +218,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         const user = await User.findById(decodedToken?._id)
 
         if (!user) {
-            return res
-                .status(401)
-                .json(
-                    new ApiError(401, "Invalid refresh token")
-                )
+            throw new ApiError(401, "Invalid refresh token")
         }
 
         if (incomingRefreshToken !== user?.refreshToken) {
-            return res
-                .status(401)
-                .json(
-                    new ApiError(401, "Invalid refresh token")
-                )
+            throw new ApiError(401, "Invalid refresh token")
         }
 
         const options = {
@@ -323,11 +248,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        return res
-                .status(500)
-                .json(
-                    new ApiError(500, "Something went wrong while refreshing access token")
-                )
+        throw new ApiError(500, "Something went wrong while refreshing access token")
     }
 })
 
@@ -339,11 +260,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     const isPasswodValid = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswodValid) {
-        return res
-            .status(401)
-            .json(
-                new ApiError(401, "Old password is incorrect")
-            )
+        throw new ApiError(401, "Old password is incorrect")
     }
 
     user.password = newPassword
@@ -380,11 +297,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullname, username } = req.body
 
     if (!fullname?.trim() && !username?.trim()) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Fullname or a username is required!")
-            )
+        throw new ApiError(400, "Fullname or a username is required!")
     }
 
     const newFullname = fullname
@@ -397,11 +310,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 
         if (!user) {
-            return res
-                .status(400)
-                .json(
-                    new ApiError(400, "User not found")
-                )
+            throw new ApiError(400, "User not found")
         }
 
         if (newFullname) {
@@ -425,11 +334,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
             )
 
     } catch (error) {
-        return res
-            .status(500)
-            .json(
-                new ApiError(500, error.message || "Something went wrong while updating account details")
-            )
+        throw new ApiError(500, error.message || "Something went wrong while updating account details")
     }
 })
 
@@ -437,53 +342,71 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path
 
     if (!avatarLocalPath) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "File is required")
-            )
+        throw new ApiError(400, "File is required")
     }
 
     try {
         const avatar = await uploadOnCloudinary(avatarLocalPath)
 
         if (!avatar?.url) {
-            return res
-                .status(500)
-                .json(
-                    new ApiError(500, "Something went wrong while uploading the avatar file")
-                )
+            throw new ApiError(500, "Something went wrong while uploading the avatar file")
         }
 
 
         const user = await User.findById(req.user?._id).select("-password -refreshToken")
 
         if (!user) {
-            return res
-                .status(404)
-                .json(
-                    new ApiError(404, "User not found")
-                )
+            throw new ApiError(404, "User not found")
         }
 
         const oldAvatar = user.avatar
 
         user.avatar = { url: avatar.url, pid: avatar.public_id }
 
+        user.save({ validateBeforeSave: false })
+
         await deleteFromCloudinary(oldAvatar?.pid)
 
         return res
             .status(200)
             .json(
-                new ApiResponse(200, updatedUser, "Avatar updated successfully")
+                new ApiResponse(200, user, "Avatar updated successfully")
             )
     } catch (error) {
-        return res
-            .status(500)
-            .json(
-                new ApiError(500, error.message || "Something went wrong while updating the avatar file")
-            )
+        throw new ApiError(500, error.message || "Something went wrong while updating the avatar file")
     }
+})
+
+const findUser = asyncHandler(async (req, res) => {
+    const { key } = req.query
+
+    if (!key || !key.trim()) {
+        throw new ApiError(400, "Keyword is required")
+    }
+
+    if(key===req.user?.username || key===req.user?.email){
+        throw new ApiError(400, "You can't search for yourself")
+    }
+
+    const user = await User.find({
+        $or: [{"username":key},{"email":key}]
+    }).select("-password -refreshToken")
+
+    if (!user || !user.length) {
+        throw new ApiError(404, "User not found")
+    }
+
+    user[0].avatar = user[0].avatar?.url
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0],
+                "User found"
+            )
+        )
 })
 
 export {
@@ -495,4 +418,5 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
+    findUser
 }

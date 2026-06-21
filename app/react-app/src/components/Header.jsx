@@ -30,14 +30,14 @@ function Header() {
         setError('')
         setMessage('')
 
-        if(!data.username || !data.username.trim()){
-            setValue("username",user?.username)
-            data.username=user?.username
+        if (!data.username || !data.username.trim()) {
+            setValue("username", user?.username)
+            data.username = user?.username
         }
 
-        if(!data.fullname || !data.fullname.trim()){
-            setValue("fullname",user?.fullname)
-            data.fullname=user?.fullname
+        if (!data.fullname || !data.fullname.trim()) {
+            setValue("fullname", user?.fullname)
+            data.fullname = user?.fullname
         }
 
         if (data.username === user.username && data.fullname === user.fullname) {
@@ -60,13 +60,13 @@ function Header() {
     }
 
     return (
-        <div className=' w-full h-full px-8 flex place-content-between place-items-center'>
+        <div className=' w-full h-full px-5 flex place-content-between place-items-center'>
             <div></div>
             {/* <Search /> */}
             <div className={` relative h-12`}>
-                <div title='Account' className={` border-2 border-black/30 absolute right-0 top-0 rounded-xl h-full flex duration-300 overflow-hidden z-80 ${dropdown ? "bg-[var(--sec-color)]" : "bg-[#fcfcfc]"}`}>
+                <div title='Account' className={` border-2 border-black/30 absolute right-0 top-0 rounded-xl h-full flex duration-150 overflow-hidden z-80 ${dropdown ? "bg-[var(--accent-color)] hover:bg-[var(--accent-color)]/95 hover:shadow-[0px_0px_5px_1px_rgba(150,150,150,1)]" : "bg-[#fcfcfc] hover:bg-[#eee] hover:shadow-[0px_0px_5px_1px_rgba(255,255,255,0.3)]"}`}>
                     <button
-                        className={` p-0 m-0 outline-none border-none`}
+                        className={` p-0 m-0 outline-none border-none cursor-pointer`}
                         onClick={() => {
                             setDropdown(state => !state)
                             setDisableInput(true)
@@ -86,11 +86,11 @@ function Header() {
                 </div>
                 {
                     // dropdown && 
-                    <div className={` ${dropdown ? "w-80 h-104 bg-[#fcfcfc]/95 border-black/10 p-1 px-2 z-10  top-[-6px] right-[-7px]" : "p-0 w-0 h-0 bg-transparent border-transparent z-0 top-6 right-6"} absolute rounded-[15px] duration-400 border-2 overflow-hidden flex flex-col `}>
-                        <div className={` ${dropdown ? ' scale-100' : ' scale-0'} duration-400 space-y-2.5 overflow-hidden `}>
-                            <form onSubmit={handleSubmit(updateProfile)}>
+                    <div className={`${error || message ? "" : "overflow-hidden"} ${dropdown ? " w-95 h-104 bg-[#fcfcfc] border-black/10 pt-1 p-2 z-10  top-[-4px] right-[-4px]" : "p-0 w-0 h-0 bg-transparent border-transparent z-0 top-6 right-6"} absolute rounded-[15px] duration-500 border-2 flex flex-col  shadow-[0px_15px_35px_-5px_rgba(0,_0,_0,_0.5)]`}>
+                        <div style={dropdown?{}:{display:"none"}} className={` ${dropdown ? ' scale-100' : ' scale-0'} overflow-hidden duration-500 space-y-2.5 `}>
+                            <form onSubmit={handleSubmit(updateProfile)} className={``}>
                                 <div className=' flex flex-col gap-2.5'>
-                                    <div className='mr-14 h-12 flex gap-8 place-items-center place-content-between'>
+                                    <div className='mr-14 h-12 flex gap-2 place-items-center place-content-between'>
                                         <button
                                             className=' rounded-4xl p-[2px] hover:bg-red-600/30'
                                             onClick={() => {
@@ -104,16 +104,16 @@ function Header() {
                                             <div className=' text-xl font-semibold flex gap-2'>
 
                                                 <button
-                                                    title={disableInput?'edit profile':'save profile'}
+                                                    title={disableInput ? 'edit profile' : 'save profile'}
                                                     type='submit'
                                                     onClick={() => {
-                                                        setDisableInput(state=>!state)
+                                                        setDisableInput(state => !state)
                                                     }}>
-                                                        {disableInput?(
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#555"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" /></svg>
-                                                        ):(
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#484"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" /></svg>
-                                                        )}
+                                                    {disableInput ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#555"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" /></svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#484"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" /></svg>
+                                                    )}
                                                 </button>
 
                                                 <ProfileInput className=" text-right" {...register("username")} disabled={disableInput} />
@@ -130,15 +130,15 @@ function Header() {
                             </form>
                             <LogoutBtn />
                         </div>
-                    </div>}
-                {dropdown && (error || message) && <div className={` w-80 p-2 px-3 flex place-content-between place-items-center bg-[#fcfcfc]/80 border-2 border-[var(--main-border-color)]/30 rounded-xl absolute z-80 left-[-313px] top-104 ${error ? 'text-red-800' : 'text-green-900'}`}>
+                        {dropdown && (error || message) && <div className={` absolute left-0 top-[102%] w-full p-2 flex place-content-between place-items-center bg-[#fcfcfc] border-2 border-[var(--main-border-color)]/30 rounded-xl ${error ? 'text-red-800' : 'text-green-900'}`}>
 
-                    <div>{error ? 'Error : ' + error : message}</div>
-                    <button onClick={() => {
-                        setError('')
-                        setMessage('')
-                    }} className=' hover:bg-black/20 rounded-full'><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3a3a3a"><path d="m336-280-56-56 144-144-144-143 56-56 144 144 143-144 56 56-144 143 144 144-56 56-143-144-144 144Z" /></svg></button>
-                </div>}
+                            <div>{error ? 'Error : ' + error : message}</div>
+                            <button onClick={() => {
+                                setError('')
+                                setMessage('')
+                            }} className=' hover:bg-black/20 rounded-full'><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#3a3a3a"><path d="m336-280-56-56 144-144-144-143 56-56 144 144 143-144 56 56-144 143 144 144-56 56-143-144-144 144Z" /></svg></button>
+                        </div>}
+                    </div>}
             </div>
 
         </div>

@@ -9,7 +9,8 @@ import {
     getCurrentUser,
     changeCurrentPassword,
     updateAccountDetails,
-    updateUserAvatar
+    updateUserAvatar,
+    findUser
 } from "../controllers/user.controller.js";
 
 const router = Router()
@@ -34,5 +35,7 @@ router.route("/change-password").post(verifyJWT, changeCurrentPassword)
 router.route("/update-account").patch(verifyJWT, updateAccountDetails)
 
 router.route("/update-avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
+
+router.route("/find").get(verifyJWT, findUser)
 
 export default router

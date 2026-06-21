@@ -1,15 +1,16 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { isValidObjectId, Schema } from "mongoose";
+import mongoose, { isValidObjectId, Schema, Types } from "mongoose";
 import { User } from "../models/user.model.js";
 import { Team } from "../models/team.model.js";
 import { Teammembership } from "../models/teammember.model.js";
+import { Event } from "../models/event.model.js";
 
 const commonTeamAggregationPipeline = (teamId) => [
     {
         $match: {
-            _id: Schema.Types.ObjectId(teamId)
+            _id: new Types.ObjectId(teamId)
         }
     },
     {
@@ -53,19 +54,19 @@ const commonTeamAggregationPipeline = (teamId) => [
     },
     {
         $addFields: {
-            "members.member": {
+            "members": {
                 $arrayElemAt: ["$members.member", 0]
             }
         }
     },
     {
         $addFields: {
-            "members.member.avatar": "$members.member.avatar.url"
+            "members.avatar": "$members.avatar.url"
         }
     },
     {
         $group: {
-            _id: "_id",
+            _id: "$_id",
             name: { $first: "$name" },
             leader: { $first: "$leader" },
             members: {
@@ -94,35 +95,39 @@ const commonTeamAggregationPipeline = (teamId) => [
     },
     {
         $addFields: {
+            "leader" : {
+                $arrayElemAt: ["$leader", 0]
+            }
+        }
+    },
+    {
+        $addFields: {
             "leader.avatar": "$leader.avatar.url"
         }
     }
 ]
 
 const addTeamMember = asyncHandler(async (req, res) => {
-    const { teamId } = req.params
+    const { eventId, teamId } = req.params
     const { userId } = req.body
 
     if (!isValidObjectId(teamId)) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid team id")
-            )
+        throw new ApiError(400, "Invalid team id")
     }
 
     if (!isValidObjectId(userId)) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid user id")
-            )
+        throw new ApiError(400, "Invalid user id")
+    }
+    const event = await Event.findById(eventId)
+
+    if (!event) {
+        throw new ApiError(404, 'Event not found')
     }
 
     const team = await Team.aggregate([
         {
             $match: {
-                _id: Schema.Types.ObjectId(teamId)
+                _id: new Types.ObjectId(teamId)
             }
         },
         {
@@ -136,45 +141,25 @@ const addTeamMember = asyncHandler(async (req, res) => {
     ])
 
     if (!team?.length) {
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "Team not found")
-            )
+        throw new ApiError(404, "Team not found")
     }
 
-    if (team[0].members.some((member) => (member.member === userId))) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "User already in team")
-            )
+    if (team[0].members.some((member) => (member.member.toString() === userId.toString()))) {
+        throw new ApiError(400, "User already in team")
     }
 
     if (team[0].members?.length === event.maxteamsize - 1) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Maximum team size reached, can't add more members")
-            )
+        throw new ApiError(400, "Maximum team size reached, can't add more members")
     }
 
     const user = await User.findById(userId).select("-password -refreshToken")
 
     if (!user) {
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "User not found")
-            )
+        throw new ApiError(404, "User not found")
     }
 
     if (user.usertype !== "student") {
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "User type mismatch, can't add this type of user to a team")
-            )
+        throw new ApiError(400, "User type mismatch, can't add this type of user to a team")
     }
 
     const member = await Teammembership.create({
@@ -198,24 +183,29 @@ const addTeamMember = asyncHandler(async (req, res) => {
 })
 
 const removeTeamMember = asyncHandler(async (req, res) => {
-    const { teammembershipId } = req.params
+    const { teamId, userId } = req.params
 
-    if (!isValidObjectId(teammembershipId)) {
+    if (!isValidObjectId(teamId)) {
         return res
             .status(400)
             .json(
-                new ApiError(400, "Invalid team-membership id")
+                new ApiError(400, "Invalid team id")
             )
     }
 
-    const membership = await Teammembership.findById(teammembershipId)
+    const membership = await Teammembership.find({
+        team: new Types.ObjectId(teamId),
+        member: new Types.ObjectId(userId)
+    })
 
-    const teamId = membership?.team
+    if (!membership || !membership.length) {
+        throw new ApiError(404, "Member not found")
+    }
 
     try {
-        await Teammembership.deleteOne(teammembershipId)
+        await Teammembership.deleteOne(membership[0]._id)
     } catch (error) {
-        new ApiError(500, "Something went wrong")
+        throw new ApiError(500, error.message || "Something went wrong")
     }
 
     const updatedTeam = await Team.aggregate(
@@ -249,11 +239,7 @@ const getTeamDetail = asyncHandler(async (req, res) => {
     )
 
     if (!team?.length) {
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "Team not found")
-            )
+        throw new ApiError(404, "Team not found")
     }
 
     return res

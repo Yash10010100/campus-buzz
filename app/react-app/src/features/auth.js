@@ -90,6 +90,17 @@ const updateAvatar = async(body)=>{
     )
 }
 
+const findUser = async(key)=>{
+    const params = new URLSearchParams()
+    params.append('key', key)
+    const url = `${userBaseRoute}/find?${params.toString()}`
+    return await request(
+        "GET",
+        null,
+        url,
+    )
+}
+
 export {
     register,
     login,
@@ -98,5 +109,6 @@ export {
     getCurrentUser,
     changePassword,
     updateAccount,
-    updateAvatar
+    updateAvatar,
+    findUser
 }

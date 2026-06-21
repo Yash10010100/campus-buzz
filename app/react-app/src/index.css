@@ -2,25 +2,41 @@
 
 :root {
   /* --main-color: #EFEDE3; */
+  /* --main-color: #e1e3e2; */
   /* --main-color: #f1f1f1; */
   /* --main-color: #f0ede5; */
-  --main-color: #282424;
+  /* --main-color: #282424; */
   /* --main-color: #ddddcf; */
+  /* --main-color: #c1c1b1; */
+  /* --main-color: #cfcfcd; */
+  /* --main-color: #e7e7da; */
   
   /* --sec-color: #292624; */
   /* --sec-color: #3e5954; */
   
   /* --main-color: #dcd7c9; */
-  --main-color: #fbf2ec;
-  --sec-color: #3f4f4f;
-  --sec-hover-color: #516060fa;
+  /* --main-color: #fbf2ec; */
 
+  /* this where applied */
+  /* --sec-color: #3f4f4f; */
+  /* --sec-hover-color: #516060fa; */
+  /* --accent-color: #3a5758; */
+  /* --main-border-color: #283a42; */
+  /* --main-hover-border-color: #7c878a; */
+  
+  --main-color: #d1d2d1;
+  --sec-color: #1f1f1f;
+  --sec-hover-color: #2c2c2c;
+  --accent-color: #35296a;
+  --main-border-color: #595f9f;
+  --main-hover-border-color: #a1a6dc;
+
+  --event-card-color: #222;
+  
   /* --main-border-color: #5E4075; */
-  --main-border-color: #283a42;
-  --main-hover-border-color: #7c878a;
 
-  --accent-color: #afb59d;
-  --accent-color: #82a08f;
+  /* --accent-color: #afb59d; */
+  /* --accent-color: #82a08f; */
   /* --accent-color: #86ab9f; */
   /* --accent-color: #a5abac; */
   /* --accent-color: #5a0006; */
@@ -47,34 +63,36 @@
 /* scrollbar css */
 
 /* width */
-/* ::-webkit-scrollbar {
-    background: var(--sec-color);
-  } */
+::-webkit-scrollbar {
+    /* background: #1115; */
+    width: 0.7rem;
+  }
 
-  /* ::-webkit-scrollbar-corner{
+  ::-webkit-scrollbar-corner{
     background-color: transparent;
-  } */
+  }
 
   /* Track */
-  /* ::-webkit-scrollbar-track {
-    background: var(--sec-hover-color);
-  } */
+  ::-webkit-scrollbar-track {
+    background: var(--sec-color);
+  }
    
   /* Handle */
-  /* ::-webkit-scrollbar-thumb {
-    border-radius: 999999px;
+  ::-webkit-scrollbar-thumb {
+    /* border-radius: 999999px; */
     max-height: 80px;
-    background: #fafafa1f;
-  } */
+    background: var(--main-border-color);
+    border: 1px solid #0d0c22;
+  }
   
   /* Handle on hover */
-  /* ::-webkit-scrollbar-thumb:hover {
-    background: #fafafa2f;
-  } */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--main-hover-border-color);
+  }
   
-  /* ::-webkit-scrollbar-thumb:active {
-    background: #fafafa4f;
-  } */
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--accent-color);
+  }
 
 
 
@@ -778,4 +796,44 @@
     width: 10px;
     left: 20px;
   }
+}
+
+
+/* Loading Ring */
+
+.lrsvg {
+ width: 3.25em;
+ transform-origin: center;
+ animation: rotate4 2s linear infinite;
+}
+
+.lrcircle {
+ fill: none;
+ stroke-width: 2;
+ stroke-dasharray: 1, 200;
+ stroke-dashoffset: 0;
+ stroke-linecap: round;
+ animation: dash4 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate4 {
+ 100% {
+  transform: rotate(360deg);
+ }
+}
+
+@keyframes dash4 {
+ 0% {
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+ }
+
+ 50% {
+  stroke-dasharray: 90, 200;
+  stroke-dashoffset: -20px;
+ }
+
+ 100% {
+  stroke-dashoffset: -90px;
+ }
 }

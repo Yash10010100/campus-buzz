@@ -1,30 +1,39 @@
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
-import { eventFormBody } from '../features/organizer'
 import { Button, ErrorMSG, Input } from '../components'
-import { uploadEvent } from '../features/organizer.js'
+import { uploadEvent, eventFormBody, updateEventDetails } from '../features/organizer'
 
 function EventForm({
-    fn
+    fn,
+    event
 }) {
 
     const user = useSelector(state => state.auth.user)
     const [error, setError] = useState("")
     const [message, setMessage] = useState("")
-    const [imgURL, setImgURL] = useState(null)
-    const [isteamevent, setIsteamevent] = useState(false)
+    const [imgURL, setImgURL] = useState(event?.themeimage || null)
+    const [isteamevent, setIsteamevent] = useState(event?.isteamevent || false)
 
     const [success, setSuccess] = useState(false)
 
-    const { register, handleSubmit, getValues } = useForm({
+    const { register, handleSubmit, getValues, setValue } = useForm({
         defaultValues: {
-            ...eventFormBody,
+            ...eventFormBody(event ? event : null),
         }
     })
 
+    const handleNumbers = (e) => {
+        if (!e.key.match(/[0-9]/) && e.key !== "Backspace" && e.key !== "Delete") {
+            e.preventDefault()
+        }
+    }
+
     const upload = async (data) => {
         console.log(data);
+
+        data.date = new Date(data.date).getTime()
+        data.lastregistrationdate = new Date(data.lastregistrationdate).getTime()
 
         try {
             const formData = new FormData()
@@ -32,8 +41,8 @@ function EventForm({
             formData.append("name", data.name)
             formData.append("organizer", data.organizer)
             formData.append("domain", data.domain)
-            formData.append("date", new Date(data.date).getTime())
-            formData.append("lastregistrationdate", new Date(data.lastregistrationdate).getTime())
+            formData.append("date", data.date)
+            formData.append("lastregistrationdate", data.lastregistrationdate)
             formData.append("description", data.description)
             formData.append("location", data.location)
             formData.append("city", data.city)
@@ -55,10 +64,10 @@ function EventForm({
                 console.log(`${pair[0]}:`, pair[1])
             }
 
-            const res = await uploadEvent(formData)
+            const res = event ? await updateEventDetails(event._id, data) : await uploadEvent(formData)
 
             if (res) {
-                setMessage("Event uploaded successfully")
+                setMessage(event ? "Event details updated successfully" : "Event uploaded successfully")
                 setSuccess(true)
                 setTimeout(() => {
                     fn()
@@ -73,7 +82,7 @@ function EventForm({
         <div className=' w-full py-3'>
             <p className=' flex gap-1.5 p-1 font-medium text-[#c91700] font-mono text-md'>
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="m40-120 440-760 440 760H40Zm440-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Z" /></svg>
-                <span>Please do not refresh the page, progress inside the form will not be saved here!</span>
+                <span>Please do not refresh the page, changes inside the form will not be saved here!</span>
             </p>
 
             <form className=' w-full rounded-b-lg border-2 border-[var(--main-border-color)] bg-[var(--sec-color)]/5' onSubmit={handleSubmit(upload)}>
@@ -103,6 +112,10 @@ function EventForm({
                             maxLength={2}
                             label="Duration of the event (in days) :"
                             placeholder="enter the duration"
+                            onKeyDown={(e) => {
+                                handleNumbers(e, "duration")
+                            }}
+                            {...register("duration", { required: true })}
                         />
 
                         <Input
@@ -123,6 +136,7 @@ function EventForm({
                         </div>}
 
                         <Input
+                            disabled={event ? true : false}
                             onInput={(e) => {
                                 if (e.target.files && e.target.files[0]) {
                                     setImgURL(URL.createObjectURL(e.target.files[0]))
@@ -132,8 +146,8 @@ function EventForm({
                             }}
                             type="file"
                             label="Choose your event's theme image (.png/.jpg/.jpeg) :"
-                            accept='image/png, image/jpg, image/jpeg'
-                            {...register("themeimage", { required: true })}
+                            accept='image/png, image/jpg, image/jpeg, image/webp'
+                            {...register("themeimage", { required: !event })}
                         />
 
                     </div>
@@ -169,8 +183,11 @@ function EventForm({
                         <Input
                             placeholder="enter the registration fees(in number)"
                             inputMode="numeric"
-                            maxLength={5}
+                            maxLength={4}
                             label="Registration fees : "
+                            onKeyDown={(e) => {
+                                handleNumbers(e)
+                            }}
                             {...register("registrationfees", { required: true })}
                         />
 
@@ -198,8 +215,13 @@ function EventForm({
                                 <input
                                     disabled={!isteamevent}
                                     id='min'
+                                    maxLength={1}
+                                    defaultValue={"1"}
                                     className={`px-3 py-2 max-w-25 rounded-lg bg-transparent text-black outline-none duration-200  border-3  border-[var(--sec-color)] focus:border-[var(--sec-color)]/80 focus:border-double hover:border-[var(--sec-color)]/60 ${isteamevent ? '' : 'cursor-not-allowed'}`}
-                                    type="number"
+                                    // type="number"
+                                    onKeyDown={(e) => {
+                                        handleNumbers(e)
+                                    }}
                                     {...register("minteamsize", { required: Boolean(isteamevent) })}
                                 />
                                 &nbsp;to&nbsp;
@@ -207,8 +229,13 @@ function EventForm({
                                 <input
                                     disabled={!isteamevent}
                                     id='max'
+                                    maxLength={2}
+                                    max={10}
                                     className={`px-3 py-2 max-w-25 rounded-lg bg-transparent text-black outline-none duration-200  border-3  border-[var(--sec-color)] focus:border-[var(--sec-color)]/80 focus:border-double hover:border-[var(--sec-color)]/60 ${isteamevent ? '' : 'cursor-not-allowed'}`}
-                                    type="number"
+                                    // type="number"
+                                    onKeyDown={(e) => {
+                                        handleNumbers(e)
+                                    }}
                                     {...register("maxteamsize", { required: Boolean(isteamevent) })}
                                 />
                             </div>
@@ -223,11 +250,13 @@ function EventForm({
                     <Button
                         type='submit'
                         onSubmit={handleSubmit(upload)}
-                    >Upload event</Button>
+                    >{event ? 'Update' : 'Upload'} event</Button>
                 </div>
             </form>
         </div>
-    ) : <div className=' w-full p-4 text-xl text-center text-white bg-[var(--sec-color)]/95 rounded-lg border-2 border-white/20'>{message}</div>
+    ) : <div className=' w-full m-4 p-4 text-xl text-center text-white bg-[var(--sec-color)]/95 rounded-lg border-2 border-white/20'>
+        {message}
+    </div>
 }
 
 export default EventForm

@@ -13,9 +13,11 @@ const Button = React.forwardRef(function Button(
         bgColor = "bg-[var(--accent-color)]/90",
         border = " border-3",
         borderColor = " border-white/20",
+        borderHoverClasses = " hover:border-white/20",
+        borderActiveClasses = " active:border-black/20",
         hoverClasses = " hover:bg-[var(--accent-color)]/95",
-        activeClasses = " active:bg-[var(--accent-color)]/95 active:border-black/20",
-        className = "px-4 py-2",
+        activeClasses = " active:bg-[var(--accent-color)]/95",
+        className = "",
         ...props
     }, ref
 ) {
@@ -23,7 +25,7 @@ const Button = React.forwardRef(function Button(
     const id = useId()
 
     return (
-        <button ref={ref} id={id} className={` rounded-lg duration-100 ${bgColor} ${border} ${borderColor} ${textColor} ${className} ${activeClasses} ${hoverClasses}`} {...props}>
+        <button ref={ref} id={id} className={`px-4 py-2 rounded-lg duration-100 ${textColor} ${className} ${activeClasses} ${hoverClasses} ${borderActiveClasses} ${borderHoverClasses} ${bgColor} ${border} ${borderColor}`} {...props}>
             {children}
         </button>
     )

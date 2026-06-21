@@ -26,8 +26,7 @@ router.route("/access/:eventId")
 .get(getEvent)
 .delete(deleteEvent)
 
-router.route("/update/:eventId/details").patch(changeThemeImage)
-.patch(updateEventDetails)
+router.route("/update/:eventId/details").patch(updateEventDetails)
 
 router.route("/update/:eventId/theme-image").patch(changeThemeImage)
 

@@ -20,6 +20,10 @@ import {
   Preferences,
   Signup,
   EventPage,
+  UpdateEvent,
+  CreateFormPage,
+  RegisterEventPage,
+  ServerErrPage,
 } from './pages'
 
 const router = createBrowserRouter([
@@ -30,9 +34,9 @@ const router = createBrowserRouter([
       {
         path: "",
         element: (
-          <AuthContainer authentication={false}>
+          // <AuthContainer authentication={false}>
             <Home />
-          </AuthContainer>
+          // </AuthContainer>
         )
       },
       {
@@ -57,7 +61,7 @@ const router = createBrowserRouter([
         ]
       },
       {
-        path: "/user",
+        path: "user",
         children: [
           {
             path: "",
@@ -94,7 +98,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "/events",
+        path: "events",
         children: [
           {
             path: "",
@@ -111,8 +115,38 @@ const router = createBrowserRouter([
                 <EventPage />
               </AuthContainer>
             )
+          },
+          {
+            path: ":eventId/update",
+            element: (
+              <AuthContainer authentication>
+                <UpdateEvent />
+              </AuthContainer>
+            )
+          },
+          {
+            path: ":eventId/registration-form",
+            element: (
+              <AuthContainer authentication>
+                <CreateFormPage/>
+              </AuthContainer>
+            )
+          },
+          {
+            path: ":eventId/register",
+            element: (
+              <AuthContainer authentication>
+                <RegisterEventPage/>
+              </AuthContainer>
+            )
           }
         ],
+      },
+      {
+        path: "server-error",
+        element: (
+          <ServerErrPage />
+        )
       }
     ]
   }

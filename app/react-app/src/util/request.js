@@ -1,3 +1,6 @@
+import ServerError from "./ServerError"
+import { getDateAndTimeFromMS } from "./time"
+
 const request = async (
     method,
     headers,
@@ -16,24 +19,19 @@ const request = async (
                 ...options
             }
         )
-        .then((response)=>(response.json()))
 
-        if(res){
-            if(!Boolean(res.success) && Number(res.statusCode)>=400){
-                console.log(res);
-                throw new Error(res.message)
-            }
+        const resJson = await res.json()
+        
+        if(!res.ok || res.status>=400){
+                throw new Error(resJson.message)
+            
         }
 
-        return res
+        return resJson
     } catch (error) {
-        if(error.message === "Failed to fetch"){
-            // throw new Error("Server is down")
+        
             throw error
-        }
-        else{
-            throw error
-        }
+        
     }
 }
 

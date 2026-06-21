@@ -11,15 +11,15 @@ const addFormField = asyncHandler(async (req, res) => {
     const { eventId, formId } = req.params
     const { name, datatype, tooltip, required, ifenumoptions } = req.body
 
-    if(!isValidObjectId(eventId)){
+    if (!isValidObjectId(eventId)) {
         return res
             .status(400)
             .json(
                 new ApiError(400, "Invalid event Id")
             )
     }
-    
-    if(!isValidObjectId(formId)){
+
+    if (!isValidObjectId(formId)) {
         return res
             .status(400)
             .json(
@@ -29,7 +29,7 @@ const addFormField = asyncHandler(async (req, res) => {
 
     const event = await Event.findById(eventId)
 
-    if(!event){
+    if (!event) {
         return res
             .status(404)
             .json(
@@ -39,7 +39,7 @@ const addFormField = asyncHandler(async (req, res) => {
 
     const form = await Form.findById(formId)
 
-    if(!form){
+    if (!form) {
         return res
             .status(404)
             .json(
@@ -47,46 +47,22 @@ const addFormField = asyncHandler(async (req, res) => {
             )
     }
 
-    if(event.registrationform !== form._id){
+    if (event.registrationform.toString() !== form._id.toString()) {
         return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form id for this event")
-            )
     }
 
-    if([name, datatype, tooltip].some((value)=>(value?.trim()===""))){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Required field is missing")
-            )
+    if ([name, datatype, tooltip].some((value) => (value?.trim() === ""))) {
+        throw new ApiError(400, "Required field is/are missing")
     }
 
-    if(!FORM_FIELD_DATATYPES.some((type)=>(type.name === datatype))){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Datatype must be one of the form-field-datatypes")
-            )
+    if (!FORM_FIELD_DATATYPES.some((type) => (type.name === datatype))) {
+        throw new ApiError(400, "Datatype must be one of the form-field-datatypes")
     }
 
-    const currentType = FORM_FIELD_DATATYPES.filter((type)=>(type.name===datatype?type:null))[0]
+    const currentType = FORM_FIELD_DATATYPES.filter((type) => (type.name === datatype ? type : null))[0]
 
-    if(currentType.isEnum && (typeof ifenumoptions !== Array)){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Enum options must be provided in an array")
-            )
-    }
-
-    if(currentType.isEnum && (!ifenumoptions || !ifenumoptions.length)){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Enum options are required for enumerated datatypes")
-            )
+    if (currentType.isEnum && (!ifenumoptions || !ifenumoptions.length)) {
+        throw new ApiError(400, "Enum options are required for enumerated datatypes")
     }
 
     const formfield = await Formfield.create({
@@ -98,37 +74,33 @@ const addFormField = asyncHandler(async (req, res) => {
         form: formId
     })
 
-    if(!formfield){
-        return res
-            .status(500)
-            .json(
-                new Api(500, "Falied to add the field")
-            )
+    if (!formfield) {
+        throw new ApiError(500, "Failed to add the field")
     }
 
     res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            formfield,
-            "Form field added"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                formfield,
+                "Form field added"
+            )
         )
-    )
 })
 
 const deleteAField = asyncHandler(async (req, res) => {
     const { eventId, formId, formfieldId } = req.params
 
-    if(!isValidObjectId(eventId)){
+    if (!isValidObjectId(eventId)) {
         return res
             .status(400)
             .json(
                 new ApiError(400, "Invalid event Id")
             )
     }
-    
-    if(!isValidObjectId(formId)){
+
+    if (!isValidObjectId(formId)) {
         return res
             .status(400)
             .json(
@@ -136,17 +108,13 @@ const deleteAField = asyncHandler(async (req, res) => {
             )
     }
 
-    if(!isValidObjectId(formfieldId)){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form-field Id")
-            )
+    if (!isValidObjectId(formfieldId)) {
+        throw new ApiError(400, "Invalid form-field Id")
     }
 
     const event = await Event.findById(eventId)
 
-    if(!event){
+    if (!event) {
         return res
             .status(404)
             .json(
@@ -156,7 +124,7 @@ const deleteAField = asyncHandler(async (req, res) => {
 
     const form = await Form.findById(formId)
 
-    if(!form){
+    if (!form) {
         return res
             .status(404)
             .json(
@@ -164,90 +132,58 @@ const deleteAField = asyncHandler(async (req, res) => {
             )
     }
 
-    if(event.registrationform !== form._id){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form id for this event")
-            )
+    if (event.registrationform.toString() !== form._id.toString()) {
+        throw new ApiError(400, "Invalid form id for this event")
     }
 
     const formfield = await Formfield.findById(formfieldId)
 
-    if(!formfield){
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "Form-field not found")
-            )
+    if (!formfield) {
+        throw new ApiError(404, "Form-field not found")
     }
 
-    if(formfield.form !== form._id){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form Id for form-field")
-            )
+    if (formfield.form.toString() !== form._id.toString()) {
+        throw new ApiError(400, "Invalid form Id for form-field")
     }
 
     await Formfield.deleteOne(formfield._id)
 
     res
-    .status(200)
-    .JSON(
-        new ApiResponse(
-            204,
-            "",
-            "Form-field deleted"
+        .status(200)
+        .json(
+            new ApiResponse(
+                204,
+                "",
+                "Form-field deleted"
+            )
         )
-    )
 })
 
 const getForm = asyncHandler(async (req, res) => {
     const { eventId, formId } = req.params
 
-    if(!isValidObjectId(eventId)){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid event Id")
-            )
+    if (!isValidObjectId(eventId)) {
+        throw new ApiError(400, "Invalid event Id")
     }
-    
-    if(!isValidObjectId(formId)){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form Id")
-            )
+
+    if (!isValidObjectId(formId)) {
+        throw new ApiError(400, "Invalid form Id")
     }
 
     const event = await Event.findById(eventId)
 
-    if(!event){
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "Event not found")
-            )
+    if (!event) {
+        throw new ApiError(404, "Event not found")
     }
 
     const form = await Form.findById(formId)
 
-    if(!form){
-        return res
-            .status(404)
-            .json(
-                new ApiError(404, "Form not found")
-            )
+    if (!form) {
+        throw new ApiError(404, "Form not found")
     }
 
-    if(event.registrationform !== form._id){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Invalid form id for this event")
-            )
+    if (event.registrationform.toString() !== form._id.toString()) {
+        throw new ApiError(400, "Invalid form id for this event")
     }
 
     const formdata = await Form.aggregate(
@@ -268,21 +204,29 @@ const getForm = asyncHandler(async (req, res) => {
         ]
     )
 
-    if(!formdata?.length){
-        return res
-            .status(400)
-            .json(
-                new ApiError(400, "Something went wrong while getting form data")
-            )
+    if (!formdata?.length) {
+        throw new ApiError(400, "Something went wrong while getting form data")
     }
 
-    res
-    .status(400)
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                formdata[0],
+                "Form data found"
+            )
+        )
+})
+
+const getFormDataTypes = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
     .json(
         new ApiResponse(
             200,
-            formdata[0],
-            "Form data found"
+            FORM_FIELD_DATATYPES,
+            "Form field data types"
         )
     )
 })
@@ -291,4 +235,5 @@ export {
     addFormField,
     deleteAField,
     getForm,
+    getFormDataTypes,
 }

@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button, ErrorMSG, Input, Select } from './'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { register as serverSignup } from '../features/auth.js'
 import { login as storeLogin } from '../redux/authSlice'
 
 function Signup() {
 
+    const status = useSelector(state=>state.auth.status)
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
@@ -45,7 +46,7 @@ function Signup() {
         }
     }
 
-    return (
+    return !status?(
         <div className=' flex flex-col gap-4 text-center'>
             <div>
                 <h1 className=' font-medium text-lg'>
@@ -100,7 +101,7 @@ function Signup() {
                 >Sign in</Button>
             </form>
         </div>
-    )
+    ):null
 }
 
 export default Signup

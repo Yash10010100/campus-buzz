@@ -3,7 +3,7 @@ const getDateAndTimeFromMS = (ms) => {
     const dateObject = new Date(ms)
     
     const date = `${dateObject.getDate()}/${dateObject.getMonth()+1}/${dateObject.getFullYear()}`
-    const time = `${dateObject.getHours()%12}:${dateObject.getMinutes()} ${dateObject.getHours()<12?'AM':'PM'}`
+    const time = `${dateObject.getHours()%12}:${dateObject.getMinutes() || '00'} ${dateObject.getHours()<12?'AM':'PM'}`
     const day = `${days[dateObject.getDay()]}`
 
     return {date, time, day}

@@ -2,9 +2,11 @@ import React, { useId } from 'react'
 
 function Select({
     options,
+    bg='bg-transparent',
     label,
     className,
-    border=" border-3  border-[var(--sec-color)]",
+    border=" border-3",
+    borderColor='border-[var(--sec-color)]',
     focusClasses=' focus:border-[var(--sec-color)]/80 focus:border-double',
     hoverClasses=' hover:border-[var(--sec-color)]/60',
     ...props
@@ -17,7 +19,7 @@ function Select({
             {...props}
             id={id}
             ref={ref}
-            className={` text-lg px-3 py-2 rounded-lg bg-transparent text-black outline-none duration-200 ${border} w-full ${className} ${focusClasses} ${hoverClasses}`}
+            className={` text-lg px-3 py-2 rounded-lg ${bg} text-black outline-none duration-200 ${border} ${borderColor} w-full ${className} ${focusClasses} ${hoverClasses}`}
             >
                 {options?.map((option)=>(
                     <option key={option} value={option} className=''>

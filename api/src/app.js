@@ -49,4 +49,16 @@ app.use("/api/v1/forms", formRouter)
 
 app.use("/api/v1/participation", participationRouter)
 
+app.use((err, req, res, next) => {
+      // Log the error for debugging purposes (optional)
+      console.error(err.stack); 
+
+      // Send a structured error response to the client
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'An unexpected error occurred',
+        // You can add more details here, but be cautious about exposing sensitive info
+        // details: err.details 
+      });
+    });
+
 export { app }

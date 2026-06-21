@@ -15,16 +15,19 @@ function AuthContainer({
     const userdata = useSelector((state) => (state.auth.user))
 
     useEffect(() => {
-            if (authentication && status !== authentication) {
-                navigate("/user")
-            }
-            else if (!authentication && status !== authentication) { 
-                navigate("/user")
-            }
-            else if (usertype && userdata?.usertype !== usertype) {
-                navigate("/user")
-            }
-            setLoading(false)
+        setLoading(true)
+
+        if (authentication && status !== authentication) {
+            navigate("/")
+        }
+        else if (!authentication && status !== authentication) { 
+            navigate("/user")
+        }
+        else if (usertype && userdata?.usertype !== usertype) {
+            navigate("/user")
+        }
+
+        setLoading(false)
     }, [status, userdata])
 
     return loading ? (

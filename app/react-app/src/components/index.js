@@ -11,6 +11,7 @@ import Sidebar from "./Sidebar";
 import Logo from "./Logo";
 import ErrorMSG from "./ErrorMSG";
 import Header from "./Header";
+import Footer from "./Footer";
 import Search from "./Search";
 import ProfileInput from "./ProfileInput";
 import LogoutBtn from "./LogoutBtn";
@@ -25,7 +26,14 @@ import StdHistory from "./StdHistory";
 import Preferences from "./Preferences";
 import Participants from "./Participants";
 import ContentLoader from "./ContentLoader";
-
+import UpdateEventComp from "./UpdateEventComp";
+import CreateForm from "./CreateForm";
+import LoadingRing from "./LoadingRing";
+import CustomForm from "./CustomForm";
+import RegisterEvent from "./RegisterEvent";
+import AddTeam from "./AddTeam";
+import GridView from "./GridView";
+import FileInput from "./FileInput";
 
 
 export {
@@ -42,6 +50,7 @@ export {
     Logo,
     ErrorMSG,
     Header,
+    Footer,
     Search,
     ProfileInput,
     LogoutBtn,
@@ -56,7 +65,13 @@ export {
     Preferences,
     Participants,
     ContentLoader,
-
-
-
+    UpdateEventComp,
+    CreateForm,
+    LoadingRing,
+    CustomForm,
+    RegisterEvent,
+    AddTeam,
+    GridView,
+    FileInput
+    
 }

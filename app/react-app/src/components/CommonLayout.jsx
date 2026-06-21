@@ -1,4 +1,4 @@
-import { Header, Sidebar } from './'
+import { Header, Sidebar, Footer } from './'
 
 function CommonLayout({
     children,
@@ -19,7 +19,7 @@ function CommonLayout({
                     </div>
                 </div>
             </div>
-
+            <Footer />
         </div>
     )
 }

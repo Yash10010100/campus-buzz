@@ -1,0 +1,21 @@
+volumes:
+  vol1:
+services:
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - vol1:/data/db
+  api:
+    build: 
+      context: ./api
+    env_file:
+      - ./api/.env
+    depends_on:
+      - mongodb
+  app:
+    build:
+      context: ./app/react-app
+    env_file:
+      - ./app/react-app/.env
+    depends_on:
+      - api

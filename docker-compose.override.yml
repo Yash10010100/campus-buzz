@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      target: dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./api:/usr/src/api
+      - /usr/src/api/node_modules
+  app:
+    build:
+      target: dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./app/react-app:/usr/src/app
+      - /usr/src/app/node_modules

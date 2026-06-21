@@ -10,10 +10,10 @@ const router = Router()
 
 router.use(verifyJWT)
 
-router.route("/:teamId")
+router.route("/:eventId/:teamId")
 .post(addTeamMember)
 .get(getTeamDetail)
 
-router.route("/:teammembershipId").delete(removeTeamMember)
+router.route("/:eventId/:teamId/:userId").delete(removeTeamMember)
 
 export default router

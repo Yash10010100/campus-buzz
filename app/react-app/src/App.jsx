@@ -5,6 +5,7 @@ import { FullPage, PageLoader } from './components'
 import { useEffect, useState } from 'react'
 import { getCurrentUser, refreshAccessTokens } from './features/auth'
 import { login as storeLogin } from './redux/authSlice'
+import ServerError from './util/ServerError'
 
 function App() {
 
@@ -20,18 +21,21 @@ function App() {
         .then((res) => {
           dispatch(storeLogin({ user: res.data }))
           setLoading(false)
-          // navigate("/user")
         })
         .catch((err) => {
           refreshAccessTokens()
             .then((res) => {
               dispatch(storeLogin({ user: res.data.user }))
               setLoading(false)
-              // navigate("/user")
             })
             .catch((err) => {
-              setLoading(false)
-              navigate("/")
+              if (err instanceof ServerError) {
+                navigate("/server-error")
+              }
+              else {
+                setLoading(false)
+                navigate("/")
+              }
             })
         })
     }

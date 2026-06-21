@@ -1,0 +1,13 @@
+services:
+  api:
+    build:
+      target: prod
+    environment:
+      - NODE_ENV=production
+    expose:
+      - "3005"
+  app:
+    build:
+      target: prod
+    ports:
+      - "5173:80"

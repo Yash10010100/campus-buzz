@@ -7,6 +7,11 @@ import History from "./History";
 import Preferences from "./Preferences";
 import Participants from "./Participants";
 import EventPage from "./EventPage";
+import UpdateEvent from "./UpdateEvent"
+import CreateFormPage from "./CreateFormPage";
+import RegisterEventPage from "./RegisterEventPage";
+import ServerErrPage from "./ServerErrPage";
+
 
 export {
     Login,
@@ -17,7 +22,10 @@ export {
     History,
     Preferences,
     Participants,
-    EventPage
-
+    EventPage,
+    UpdateEvent,
+    CreateFormPage,
+    RegisterEventPage,
+    ServerErrPage
     
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAllFutureEvents } from '../features/organizer.js'
-import { ContentLoader, EventCard } from '../components'
+import { ContentLoader, GridView } from '../components'
 
 function AllEvents() {
 
@@ -15,7 +15,7 @@ function AllEvents() {
                 setLoading(false)
             })
             .catch((err) => {
-
+                
             })
     }, [])
 
@@ -24,17 +24,9 @@ function AllEvents() {
     ) : (
         <div className='p-2'>
             <p className=' p-2 pb-3 text-2xl'>{events && events.length ? `${events.length===1?'1 event' : events.length+' events'}  found in upcomming dates` : 'No events available in upcomming dates'}</p>
-            <hr className='mb-5'/>
+            <hr className=''/>
 
-            <ul>
-                <div className=' px-2 grid grid-cols-3 gap-3'>
-                    {events && events.map((e)=>(
-                        <li key={e._id}>
-                            <EventCard event={e}/>
-                        </li>
-                    ))}
-                </div>
-            </ul>
+            <GridView events={events}/>
         </div>
     )
 }
